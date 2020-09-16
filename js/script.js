@@ -236,8 +236,8 @@ function ProductGrid(bus, productGridEl, productGridTitle, products) {
   }
 }
 
-// product preview
-function ProductPreview(bus, productCarouselEl, productInfoEl) {
+// product preview carousel
+function ProductPreviewCarousel(bus, productCarouselEl) {
   var template = '<div class="swiper-slide">' +
                     '<div class="product-detail__preview__carousel__item__wrapper">' +
                       '<div class="product-detail__preview__carousel__item">' +
@@ -257,7 +257,6 @@ function ProductPreview(bus, productCarouselEl, productInfoEl) {
       topCarousel.addSlide(index, template.replace(':SRC', img));
       thumbsCarousel.addSlide(index, template.replace(':SRC', img));
     });
-    
   }
   function init() {
     thumbsCarousel = new Swiper(productCarouselEl.querySelector('.gallery-thumbs'), {
@@ -270,15 +269,14 @@ function ProductPreview(bus, productCarouselEl, productInfoEl) {
     topCarousel = new Swiper(productCarouselEl.querySelector('.gallery-top'), {
       spaceBetween: 10,
       navigation: {
-        nextEl: '.swiper-button-next',
-        prevEl: '.swiper-button-prev',
+        nextEl: '#js-preview-carousel-next',
+        prevEl: '#js-preview-carousel-prev',
       },
       thumbs: {
         swiper: thumbsCarousel
       }
     });
   }
-  
 
   this.init = init;
   this.renderPreview = function(data) {
@@ -298,6 +296,34 @@ function ProductPreview(bus, productCarouselEl, productInfoEl) {
   };
 }
 
+function ProductPreviewInfo(bus, productPreviewInfoEl) {
+  var template = '<p class="product-detail__preview__info__description">:DESCRIPTION</p>' +
+                  '<p class="product-detail__preview__info__lens-type">:LENS_TYPE</p>' +
+                  '<p class="product-detail__preview__info__price">:PRICE</p>' +
+                  '<div class="product-detail__preview__info__category__wrapper">' +
+                    '<div class="product-detail__preview__info__category" data-category="person&animals"><span class="product-detail__preview__info__category__title">Person Animal</span></div>' +
+                    '<div class="product-detail__preview__info__category" data-category="flowers&foods"><span class="product-detail__preview__info__category__title">Flower Food</span></div>' +
+                    '<div class="product-detail__preview__info__category" data-category="landscape"><span class="product-detail__preview__info__category__title">Land scape</span></div>' +
+                    '<div class="product-detail__preview__info__category" data-category="moving&ojbects"><span class="product-detail__preview__info__category__title">Moving Objects</span></div>' +
+                  '</div>' +
+                  '<a href=":HREF" target="_blank" class="product-detail__preview__info__btn">Go to product page</a>';
+
+  function renderPreview(product) {
+    productPreviewInfoEl.innerHTML = template
+      .replace(':DESCRIPTION', 'dummy description')
+      .replace(':LENS_TYPE', '(dummy lens type)')
+      .replace(':PRICE', 'Price: $' + product.price / 100 + ' + Tax')
+      .replace(':HREF', product.shop_url);
+    var categories = productPreviewInfoEl.querySelectorAll('[data-category]');
+    Array.prototype.forEach.call(categories, function(category) {
+      if (product.category.indexOf(category.dataset.category) !== -1) {
+        category.classList.add('product-detail__preview__info__category--active');
+      }
+    });
+  }
+
+  this.renderPreview = renderPreview;
+}
 // script
 var bus = new EventEmitter();
 
@@ -305,13 +331,17 @@ var bus = new EventEmitter();
 var filter = new Filter(bus, document.getElementById('filters'));
 
 // product detail
-//product preview
-var productPreview = new ProductPreview(
+//product preview carousel
+var productPreviewCarousel = new ProductPreviewCarousel(
     bus,
     document.getElementById('selected-product-carousel'),
+    // document.getElementById('selected-product-info'),
+);
+//product preview info
+var productPreviewInfo = new ProductPreviewInfo(
+    bus,
     document.getElementById('selected-product-info'),
 );
-
 // product grid
 var productGrid = new ProductGrid(
     bus,
@@ -324,8 +354,9 @@ bus.addListener(EVENTS.FILTERS.CHANGED, function(data) {
     productGrid.filterBy(data);
 });
 bus.addListener(EVENTS.PRODUCTS.ITEM_ACTIVATED, function(data) {
-    productPreview.renderPreview(data);
+    productPreviewCarousel.renderPreview(data);
+    productPreviewInfo.renderPreview(data);
 });
 
-productPreview.init();
+productPreviewCarousel.init();
 productGrid.init();

@@ -5,7 +5,9 @@ body {
 .container {
   padding: 0 15px; }
   .container--fluid {
-    width: 100%; }
+    width: 100%;
+    max-width: 1500px;
+    margin: 0 auto; }
 
 .row {
   margin: 0 -15px;
@@ -55,11 +57,14 @@ body {
 
 .product-detail__preview__carousel {
   transition: opacity .15s ease-in-out; }
+  .product-detail__preview__carousel__wrapper {
+    position: relative;
+    padding: 0 45px; }
   .product-detail__preview__carousel__item {
     position: absolute;
     top: 0;
-    left: 45px;
-    right: 45px;
+    left: 0;
+    right: 0;
     bottom: 0;
     display: flex;
     align-items: center;
@@ -79,19 +84,85 @@ body {
   .product-detail__preview__carousel .gallery-top {
     width: 100%; }
   .product-detail__preview__carousel .gallery-thumbs {
-    box-sizing: border-box;
-    padding: 10px 0; }
-    .product-detail__preview__carousel .gallery-thumbs .product-detail__preview__carousel__item {
-      left: 0;
-      right: 0; }
-      .product-detail__preview__carousel .gallery-thumbs .product-detail__preview__carousel__item__wrapper {
-        padding-top: 50%; }
+    box-sizing: border-box; }
     .product-detail__preview__carousel .gallery-thumbs .swiper-slide {
       width: 50%;
       height: 100%;
       opacity: 0.4; }
     .product-detail__preview__carousel .gallery-thumbs .swiper-slide-thumb-active {
       opacity: 1; }
+
+.product-detail__preview__info {
+  display: flex;
+  flex-direction: column; }
+  .product-detail__preview__info__description {
+    margin-bottom: 0; }
+  .product-detail__preview__info__lens-type {
+    margin-bottom: 0;
+    font-weight: 700; }
+  .product-detail__preview__info__price {
+    margin-bottom: 0; }
+  .product-detail__preview__info__category {
+    display: flex;
+    position: relative;
+    align-items: center;
+    margin: 5px;
+    width: calc(50% - 10px);
+    height: 50px;
+    border-radius: 5px;
+    background-color: #777;
+    opacity: .5;
+    transition: opacity .3s ease-in-out;
+    overflow: hidden; }
+    .product-detail__preview__info__category:before {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      background-position: center;
+      background-size: cover;
+      background-repeat: no-repeat; }
+    .product-detail__preview__info__category[data-category="person&animals"]:before {
+      background-image: url("../img/category/person_animals.jpg"); }
+    .product-detail__preview__info__category[data-category="flowers&foods"]:before {
+      background-image: url("../img/category/flower_foods.jpg"); }
+    .product-detail__preview__info__category[data-category="landscape"]:before {
+      background-image: url("../img/category/landscape.jpg"); }
+    .product-detail__preview__info__category[data-category="moving&ojbects"]:before {
+      background-image: url("../img/category/moving_objects.jpg"); }
+    .product-detail__preview__info__category__title {
+      color: #fff;
+      font-size: 14px;
+      width: 50%;
+      padding: 5px;
+      word-break: break-word;
+      line-height: 1; }
+    .product-detail__preview__info__category--active {
+      opacity: 1; }
+    .product-detail__preview__info__category__wrapper {
+      display: flex;
+      flex-wrap: wrap;
+      margin: auto -5px; }
+  .product-detail__preview__info__btn {
+    display: block;
+    box-shadow: unset;
+    outline: 0;
+    border-radius: 10px;
+    border: 0;
+    background-color: #777;
+    padding: 10px 15px;
+    text-align: center;
+    color: #fff;
+    text-decoration: none;
+    font-size: 24px;
+    font-weight: 700; }
+    .product-detail__preview__info__btn:hover {
+      color: #fff;
+      text-decoration: none; }
+    .product-detail__preview__info__btn:active {
+      color: #fff; }
 
 .grid {
   position: relative; }
