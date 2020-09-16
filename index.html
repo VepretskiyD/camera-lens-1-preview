@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+  <div class="container container--fluid">
+    <div class="row">
+      <div class="col">
+        <h1>Page Title</h1>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col">
+        <div class="filter__wrapper" id="filters">
+          <div class="filter">
+            <div class="filter__section">
+              <div class="filter__section__title">Camera</div>
+              <div class="filter__section__input__group" data-filter-name="size">
+                <div class="filter__section__input__btn">
+                  <input type="checkbox" id="35mm-full-size" class="filter__section__input" data-filter-value="35mmフルサイズ">
+                  <label for="35mm-full-size" class="filter__section__input__label">
+                    35mm full Size
+                  </label>
+                </div>
+                <div class="filter__section__input__btn">
+                  <input type="checkbox" id="aps-c-size" class="filter__section__input" data-filter-value="APS-Cサイズ">
+                  <label for="aps-c-size" class="filter__section__input__label">
+                    APS-C Size
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div class="filter__section">
+              <div class="filter__section__title">Price</div>
+              <div class="filter__section__input__group" data-filter-name="price" data-filter-auto-select="true">
+                <div class="filter__section__input__btn">
+                  <input type="checkbox" id="price-500" class="filter__section__input" data-filter-value="0-499">
+                  <label for="price-500" class="filter__section__input__label">
+                    ~$500
+                  </label>
+                </div>
+                <div class="filter__section__input__btn">
+                  <input type="checkbox" id="price-1000" class="filter__section__input" data-filter-value="500-999">
+                  <label for="price-1000" class="filter__section__input__label">
+                    ~$1000
+                  </label>
+                </div>
+                <div class="filter__section__input__btn">
+                  <input type="checkbox" id="price-2000" class="filter__section__input" data-filter-value="1000-1999">
+                  <label for="price-2000" class="filter__section__input__label">
+                    ~$2000
+                  </label>
+                </div>
+                <div class="filter__section__input__btn">
+                  <input type="checkbox" id="price-over-2000" class="filter__section__input" data-filter-value="2000-">
+                  <label for="price-over-2000" class="filter__section__input__label">
+                    over $2000~
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div class="filter__section">
+              <div class="filter__section__title">Photo Category</div>
+              <div class="filter__section__input__group filter__section__input__group--with-col" data-filter-name="category">
+                <div class="filter__section__input__group__col">
+                  <div class="filter__section__input__btn">
+                    <input type="checkbox" id="person-animal" class="filter__section__input" data-filter-value="person&animals">
+                    <label for="person-animal" class="filter__section__input__label">
+                      Person Animal
+                    </label>
+                  </div>
+                  <div class="filter__section__input__btn">
+                    <input type="checkbox" id="flower-food" class="filter__section__input" data-filter-value="flowers&foods">
+                    <label for="flower-food" class="filter__section__input__label">
+                      Flower Food
+                    </label>
+                  </div>
+                </div>
+                <div class="filter__section__input__group__col">
+                  <div class="filter__section__input__btn">
+                    <input type="checkbox" id="landscape" class="filter__section__input" data-filter-value="landscape">
+                    <label for="landscape" class="filter__section__input__label">
+                      Landscape
+                    </label>
+                  </div>
+                  <div class="filter__section__input__btn">
+                    <input type="checkbox" id="moving-objects" class="filter__section__input" data-filter-value="moving&objects">
+                    <label for="moving-objects" class="filter__section__input__label">
+                      Moving objects
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col">
+        <div class="product-detail__wrapper">
+          <div class="product-detail__preview">
+            PHOTO
+          </div>
+          <div class="product-detail__info">
+            INFO
+          </div>
+          <h5 class="product-detail__grid__title" id="product-grid-title"></h5>
+          <div class="product-detail__grid">
+            <div class="grid" id="product-grid"></div>
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="product-slide__wrapper">
+          Product slide
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col">
+        <div class="product-compare__wrapper">
+          Comparison
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="js/vendor.js"></script>
+  <script src="data.js"></script>
+  <script src="js/script.js"></script>
+</body>
+
+</html>
