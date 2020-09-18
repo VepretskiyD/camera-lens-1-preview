@@ -5,8 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document</title>
-  <link rel="stylesheet" href="css/vendor.css">
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/vendor.css?180920">
+  <link rel="stylesheet" href="css/style.css?180920">
 </head>
 
 <body>
@@ -19,6 +19,9 @@
     <div class="row">
       <div class="col">
         <div class="filter__wrapper" id="filters">
+          <div class="filter__clear-overlay">
+            <button type="button" class="filter__clear-overlay__btn" id="filters-clear-btn">Clear filter</button>
+          </div>
           <div class="filter">
             <div class="filter__section">
               <div class="filter__section__title">Camera</div>
@@ -149,7 +152,7 @@
             </div>
             <div class="product-detail__preview__info col col--half" id="selected-product-info"></div>
           </div>
-          <h5 class="product-detail__grid__title" id="product-grid-title"></h5>
+          <h2 class="product-detail__grid__title" id="product-grid-title"></h2>
           <div class="product-detail__grid">
             <div class="grid" id="product-grid"></div>
           </div>
@@ -206,14 +209,21 @@
     <div class="row">
       <div class="col">
         <div class="product-compare__wrapper">
-          Comparison
+          <div class="product-compare__heading">
+            <h2 class="product-compare__heading__title">Compare products</h2>
+            <div class="product-compare__heading__btn__wrapper">
+              <span class="product-compare__heading__btn__label">Check on products to compare</span>
+              <button type="button" id="product-compare-show-checked-btn" class="product-compare__heading__btn">Show checked only</button>
+            </div>
+          </div>
+          <div class="product-compare" id="product-comparison"></div>
         </div>
       </div>
     </div>
   </div>
-  <script src="js/vendor.js"></script>
-  <script src="data.js"></script>
-  <script src="js/script.js"></script>
+  <script src="js/vendor.js?180920"></script>
+  <script src="data.js?180920"></script>
+  <script src="js/script.js?180920"></script>
 </body>
 
 </html>

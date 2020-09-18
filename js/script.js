@@ -3,16 +3,30 @@
 var EVENTS = {
   FILTERS: {
     CHANGED: 'filters-changes',
+    CLEARED: 'filters-cleared',
   },
   PRODUCTS: {
     ITEM_ACTIVATED: 'product-activated',
   },
+  COMPARISON: {
+    FILTER_CHECKED: 'comparison-filtered-by-checked',
+  },
 };
+
+var PHOTO_LABELS = [
+  'Wide',
+  'Focus',
+  'Micro',
+  'Macro'
+];
 // filters
 
-function Filter(bus, filtersEl) {
+function Filter(bus, filtersEl, filtersClearBtnEl) {
     this.get = getFilters;
     this.reset = resetFilters;
+    this.showClearFilterOverlay = function() {
+        filtersEl.classList.add('filter__wrapper--clear-overlay');
+    }
 
     var filters = {};
     // get all filter inputs
@@ -48,6 +62,12 @@ function Filter(bus, filtersEl) {
         return result;
     }
 
+    filtersClearBtnEl.addEventListener('click', function() {
+        filtersEl.classList.remove('filter__wrapper--clear-overlay');
+        resetFilters();
+        bus.emitEvent(EVENTS.FILTERS.CLEARED);
+    });
+
     // update filters summary on filter input change
     filtersEl.addEventListener('change', function(e) {
         var target = e.target;
@@ -78,9 +98,6 @@ function Filter(bus, filtersEl) {
 
     // reset all filters
     function resetFilters() {
-        if (!Object.keys(getFilters()).length) {
-            return;
-        }
         var groupKeys = Object.keys(filters);
         groupKeys.forEach(function(groupKey) {
             var itemKeys = Object.keys(filters[groupKey]);
@@ -135,6 +152,7 @@ function ProductGrid(bus, productGridEl, productGridTitle, products) {
   }
 
   this.filterBy = function(filterData) {
+    sortByPrice();
     filterGrid(filterData);
     renderGridTitle();
   }
@@ -234,6 +252,26 @@ function ProductGrid(bus, productGridEl, productGridTitle, products) {
       item.classList.remove('product-detail__grid__item--active');
     })
   }
+
+  function matchComparison(data) {
+    grid.filter(function(item) {
+      var itemEl = item.getElement();
+      var itemIndex = itemEl.dataset.index;
+      return data.indexOf(+itemIndex) !== -1;
+    }, { layout: false });
+    grid.sort(function(itemA, itemB) {
+      var itemAEl = itemA.getElement();
+      var itemBEl = itemB.getElement();
+      var itemAIndex = +itemAEl.dataset.index;
+      var itemBIndex = +itemBEl.dataset.index;
+      return data.indexOf(itemAIndex) - data.indexOf(itemBIndex);
+    });
+  }
+
+  this.matchComparison = function(data) {
+    matchComparison(data);
+    renderGridTitle();
+  };
 }
 
 // product preview carousel
@@ -310,7 +348,7 @@ function ProductPreviewInfo(bus, productPreviewInfoEl) {
 
   function renderPreview(product) {
     productPreviewInfoEl.innerHTML = template
-      .replace(':DESCRIPTION', 'dummy description')
+      .replace(':DESCRIPTION', product.MPN)
       .replace(':LENS_TYPE', '(dummy lens type)')
       .replace(':PRICE', 'Price: $' + product.price / 100 + ' + Tax')
       .replace(':HREF', product.shop_url);
@@ -380,11 +418,212 @@ function ProductSlide(bus, productSlideEl, productCommentEl) {
     }, 300);
   };
 }
+// product comparison
+function ProductComparison(bus, productComparisonEl, productComparisonBtnEl, products) {
+  var checkedProducts = [];
+  var productsByGroup = {};
+  var productsGroups = products
+    .map(function(product) {
+      return product.group;
+    })
+    .filter(function(elem, pos,arr) {
+      return arr.indexOf(elem) == pos;
+    })
+    .sort();
+  productsGroups.forEach(function(group) {
+    productsByGroup[group] = [];
+  });
+  products.forEach(function(product, index) {
+    productsByGroup[product.group].push({
+      data: product,
+      el: null,
+      input: null,
+      checked: false,
+      index: index
+    });
+  });
+
+  var templates = {
+    header: {
+      wrapper: '<div class="product-compare__header" data-section-product-group=":GROUP">' +
+                  '<div class="product-compare__header__row__wrapper">' +
+                    ':LABEL' +
+                    '<div class="product-compare__header__row">' +
+                      ':ITEMS' +
+                    '</div>' +
+                  '</div>' +
+                '</div>',
+      label: '<div class="product-compare__header__label">:GROUP</div>',
+      item: '<div class="product-compare__header__item" data-header-item data-product-group=":GROUP" data-product-index=":INDEX">' +
+              '<label class="product-compare__header__item__label">' +
+                '<input type="checkbox" class="product-compare__header__item__checkbox">' +
+                '<img src=":SRC" class="product-compare__header__item__product-img">' +
+                '<p class="product-compare__header__item__product-name">:NAME</p>' +
+                '<p class="product-compare__header__item__product-price">:PRICE</p>' +
+              '</label>' +
+            '</div>',
+    },
+    body: {
+      wrapper: '<div class="product-compare__body" data-section-product-group=":GROUP">:ROWS</div>',
+      row: '<div class="product-compare__body__row__wrapper">' +
+              ':LABEL' +
+              '<div class="product-compare__body__row">' +
+                ':ITEMS' +
+              '</div>' +
+            '</div>',
+      rowLabel: '<div class="product-compare__body__label">:LABEL</div>',
+      rowItem: '<div class="product-compare__body__item" data-product-group=":GROUP" data-product-index=":INDEX">' +
+                  '<img src=":SRC" class="product-compare__body__item__img">' +
+                '</div>',
+    }
+  };
+
+  function init() {
+    var groupKeys = Object.keys(productsByGroup);
+    groupKeys.forEach(function(key) {
+      renderHeader(key, productsByGroup[key]);
+      renderBody(key, productsByGroup[key]);
+    });
+    var itemsEl = productComparisonEl.querySelectorAll('[data-header-item][data-product-index][data-product-group]');
+    Array.prototype.forEach.call(itemsEl, function(item) {
+      var itemIndex = item.dataset.productIndex;
+      var itemGroup = item.dataset.productGroup;
+      var itemCheckbox = item.querySelector('input[type="checkbox"]');
+      var productObj = productsByGroup[itemGroup][itemIndex];
+      productObj.el = item;
+      productObj.input = itemCheckbox;
+      productObj.checked = itemCheckbox.checked;
+    });
+    productComparisonEl.addEventListener('change', function(e) {
+      var target = e.target;
+      var productEl = target.closest('[data-product-index][data-product-group]');
+      if (productEl) {
+        var itemIndex = productEl.dataset.productIndex;
+        var itemGroup = productEl.dataset.productGroup;
+        productsByGroup[itemGroup][itemIndex].checked = target.checked;
+      }
+    });
+    productComparisonBtnEl.addEventListener('click', function() {
+      filterChecked();
+      bus.emitEvent(EVENTS.COMPARISON.FILTER_CHECKED, [checkedProducts]);
+    });
+  }
+
+  function renderHeader(groupName, groupProducts) {
+    var headerLabelHTML = templates.header.label.replace(':GROUP', groupName);
+    var headerItemsHTML = '';
+    groupProducts.forEach(function(product, index) {
+      headerItemsHTML += templates.header.item
+        .replace(':INDEX', index)
+        .replace(':GROUP', product.data.group)
+        .replace(':SRC', product.data.image_url)
+        .replace(':NAME', product.data.MPN)
+        .replace(':PRICE', '$' + product.data.price / 100);
+    });
+    var headerHTML = templates.header.wrapper
+      .replace(':GROUP', groupName)
+      .replace(':LABEL', headerLabelHTML)
+      .replace(':ITEMS', headerItemsHTML)
+    productComparisonEl.insertAdjacentHTML('beforeend', headerHTML);
+  }
+
+  function renderBody(groupName, groupProducts) {
+    var bodyRowsHTML = '';
+    PHOTO_LABELS.forEach(function(label, labelIndex) {
+      var rowItems = '';
+      groupProducts.forEach(function(product, index) {
+        rowItems += templates.body.rowItem
+          .replace(':INDEX', index)
+          .replace(':GROUP', product.data.group)
+          .replace(':SRC', product.data.cells_src[labelIndex]);
+      });
+      var rowLabel = templates.body.rowLabel.replace(':LABEL', label);
+      bodyRowsHTML += templates.body.row
+      .replace(':LABEL', rowLabel)
+      .replace(':ITEMS', rowItems);
+    });
+    var bodyHTML = templates.body.wrapper
+      .replace(':GROUP', groupName)
+      .replace(':ROWS', bodyRowsHTML);
+    productComparisonEl.insertAdjacentHTML('beforeend', bodyHTML);
+  }
+
+  var activeProduct = null;
+
+  function highlightActive(data) {
+    var activeProductIndex = productsByGroup[data.group].findIndex(function(product) {
+      return product.data === data;
+    });
+    if (activeProductIndex !== -1) {
+      if (activeProduct !== null) {
+        Array.prototype.forEach.call(
+          productComparisonEl.querySelectorAll('[data-section-product-group="' + activeProduct.dataset.productGroup + '"]'),
+          function(el) {
+            el.classList.remove('product-compare__active-group');
+          }
+        );
+        activeProduct.classList.remove('product-compare__header__item--active');
+      }
+      activeProduct = productsByGroup[data.group][activeProductIndex].el;
+      Array.prototype.forEach.call(
+        productComparisonEl.querySelectorAll('[data-section-product-group="' + data.group + '"]'),
+        function(el) {
+          el.classList.add('product-compare__active-group');
+        }
+      );
+      activeProduct.classList.add('product-compare__header__item--active');
+    }
+  }
+
+  function filterChecked() {
+    checkedProducts = [];
+    var groupKeys = Object.keys(productsByGroup);
+    groupKeys.forEach(function(key) {
+      productsByGroup[key].forEach(function(product, index) {
+        if (!product.checked) {
+          var itemsToHide = productComparisonEl
+            .querySelectorAll('[data-product-group="' + key + '"][data-product-index="' + index + '"]');
+          Array.prototype.forEach.call(itemsToHide, function(item) {
+            item.style.display = 'none';
+          });
+        } else {
+          checkedProducts.push(product.index);
+        }
+      });
+    });
+  }
+
+  function reset() {
+    var groupKeys = Object.keys(productsByGroup);
+    groupKeys.forEach(function(key) {
+      productsByGroup[key].forEach(function(product, index) {
+        if (!product.checked) {
+          var itemsToShow = productComparisonEl
+          .querySelectorAll('[data-product-group="' + key + '"][data-product-index="' + index + '"]');
+          Array.prototype.forEach.call(itemsToShow, function(item) {
+            item.style.display = '';
+          });
+        } else {
+          product.input.checked = false;
+          product.checked = false;
+        }
+      });
+    });
+  }
+
+  this.reset = reset;
+  this.init = init;
+  this.highlightActive = highlightActive;
+}
 // script
 var bus = new EventEmitter();
 
 // filters
-var filter = new Filter(bus, document.getElementById('filters'));
+var filter = new Filter(
+    bus,
+    document.getElementById('filters'),
+    document.getElementById('filters-clear-btn'),
+);
 
 // product detail
 // product preview carousel
@@ -411,15 +650,32 @@ var productSlide = new ProductSlide(
     document.getElementById('selected-product-comment'),
 );
 
+// product comparison
+var productComparison = new ProductComparison(
+    bus,
+    document.getElementById('product-comparison'),
+    document.getElementById('product-compare-show-checked-btn'),
+    products
+);
+
 bus.addListener(EVENTS.FILTERS.CHANGED, function(data) {
     productGrid.filterBy(data);
+});
+bus.addListener(EVENTS.FILTERS.CLEARED, function() {
+    productComparison.reset();
+});
+bus.addListener(EVENTS.COMPARISON.FILTER_CHECKED, function(data) {
+    filter.showClearFilterOverlay();
+    productGrid.matchComparison(data);
 });
 bus.addListener(EVENTS.PRODUCTS.ITEM_ACTIVATED, function(data) {
     productPreviewCarousel.renderPreview(data);
     productPreviewInfo.renderPreview(data);
     productSlide.renderGallery(data);
+    productComparison.highlightActive(data);
 });
 
 productPreviewCarousel.init();
 productSlide.init();
+productComparison.init();
 productGrid.init();
