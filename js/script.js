@@ -634,19 +634,19 @@ var filter = new Filter(
     bus,
     document.getElementById('filters'),
     document.getElementById('filters-clear-btn'),
-    document.getElementById('filters-aside-btn'),
+    document.getElementById('filters-aside-btn')
 );
 
 // product detail
 // product preview carousel
 var productPreviewCarousel = new ProductPreviewCarousel(
     bus,
-    document.getElementById('selected-product-carousel'),
+    document.getElementById('selected-product-carousel')
 );
 // product preview info
 var productPreviewInfo = new ProductPreviewInfo(
     bus,
-    document.getElementById('selected-product-info'),
+    document.getElementById('selected-product-info')
 );
 // product grid
 var productGrid = new ProductGrid(
@@ -659,7 +659,7 @@ var productGrid = new ProductGrid(
 var productSlide = new ProductSlide(
     bus,
     document.getElementById('selected-product-gallery'),
-    document.getElementById('selected-product-comment'),
+    document.getElementById('selected-product-comment')
 );
 
 // product comparison
