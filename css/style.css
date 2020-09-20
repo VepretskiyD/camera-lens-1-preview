@@ -7,7 +7,7 @@ body {
   .container--fluid {
     width: 100%;
     max-width: 1500px;
-    min-width: 1024px;
+    min-width: 370px;
     margin: 0 auto; }
 
 .row {
@@ -18,8 +18,9 @@ body {
 .col {
   margin: 0 15px;
   width: calc(100% - 30px); }
-  .col--half {
-    width: calc(50% - 30px); }
+  @media all and (min-width: 1024px) {
+    .col--half {
+      width: calc(50% - 30px); } }
   .col--border-right {
     position: relative; }
     .col--border-right:after {
@@ -94,10 +95,16 @@ body {
   display: flex;
   flex-grow: 1;
   background-color: #7a7172; }
+  @media all and (max-width: 1023px) {
+    .filter {
+      flex-wrap: wrap; } }
   .filter__wrapper {
     position: relative;
     display: flex;
     margin-bottom: 20px; }
+    @media all and (max-width: 767px) {
+      .filter__wrapper {
+        flex-direction: column; } }
   .filter__section {
     display: flex;
     align-items: center;
@@ -241,6 +248,7 @@ body {
 .filter__switch {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   background-color: #7a7172;
   padding-right: 49px; }
   .filter__switch__input {
@@ -262,7 +270,6 @@ body {
         background-color: #7a7172;
         box-shadow: unset !important; }
     .filter__switch__input__btn {
-      flex-grow: 1;
       display: flex; }
       .filter__switch__input__btn:first-child .filter__switch__input__label:after {
         transform: skewX(-45deg) translateX(50%);
@@ -327,6 +334,9 @@ body {
   .product-detail__preview__carousel__wrapper {
     position: relative;
     padding: 0 45px; }
+    @media all and (max-width: 1023px) {
+      .product-detail__preview__carousel__wrapper .swiper-container {
+        max-width: 300px; } }
   .product-detail__preview__carousel__item {
     position: absolute;
     top: 0;
@@ -612,13 +622,14 @@ body {
 
 .product-compare {
   overflow: auto;
-  max-height: 480px;
+  max-height: 490px;
   display: flex;
   flex-direction: column; }
   .product-compare__active-group {
     order: -1; }
   .product-compare__heading {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     border-top: 1px solid #636363;
     border-bottom: 1px solid #636363;
@@ -649,6 +660,9 @@ body {
         margin: 0 auto;
         display: flex;
         align-items: center; }
+        @media all and (max-width: 767px) {
+          .product-compare__heading__btn__wrapper {
+            flex-wrap: wrap; } }
       .product-compare__heading__btn__label {
         margin-right: 10px;
         font-size: 24px; }
