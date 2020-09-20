@@ -21,7 +21,7 @@ var PHOTO_LABELS = [
 ];
 // filters
 
-function Filter(bus, filtersEl, filtersClearBtnEl) {
+function Filter(bus, filtersEl, filtersClearBtnEl, filtersAsideBtnEl) {
     this.get = getFilters;
     this.reset = resetFilters;
     this.showClearFilterOverlay = function() {
@@ -68,6 +68,10 @@ function Filter(bus, filtersEl, filtersClearBtnEl) {
         bus.emitEvent(EVENTS.FILTERS.CLEARED);
     });
 
+    filtersAsideBtnEl.addEventListener('click', function() {
+        console.log('filters aside btn clicked');
+    });
+
     // update filters summary on filter input change
     filtersEl.addEventListener('change', function(e) {
         var target = e.target;
@@ -82,6 +86,9 @@ function Filter(bus, filtersEl, filtersClearBtnEl) {
             }
             filters[filterGroup][filterValue].state = target.checked;
             bus.emitEvent(EVENTS.FILTERS.CHANGED, [getFilters()]);
+        }
+        if (target.dataset.filterSwitch) {
+            console.log('switched filters type to ', target.dataset.filterSwitch);
         }
     });
 
@@ -340,9 +347,9 @@ function ProductPreviewInfo(bus, productPreviewInfoEl) {
                   '<p class="product-detail__preview__info__price">:PRICE</p>' +
                   '<div class="product-detail__preview__info__category__wrapper">' +
                     '<div class="product-detail__preview__info__category" data-category="person&animals"><span class="product-detail__preview__info__category__title">Person Animal</span></div>' +
-                    '<div class="product-detail__preview__info__category" data-category="flowers&foods"><span class="product-detail__preview__info__category__title">Flower Food</span></div>' +
                     '<div class="product-detail__preview__info__category" data-category="landscape"><span class="product-detail__preview__info__category__title">Land scape</span></div>' +
-                    '<div class="product-detail__preview__info__category" data-category="moving&ojbects"><span class="product-detail__preview__info__category__title">Moving Objects</span></div>' +
+                    '<div class="product-detail__preview__info__category" data-category="flowers&foods"><span class="product-detail__preview__info__category__title">Flower Food</span></div>' +
+                    '<div class="product-detail__preview__info__category" data-category="moving&objects"><span class="product-detail__preview__info__category__title">Moving Objects</span></div>' +
                   '</div>' +
                   '<a href=":HREF" target="_blank" class="product-detail__preview__info__btn">Go to product page</a>';
 
@@ -623,6 +630,7 @@ var filter = new Filter(
     bus,
     document.getElementById('filters'),
     document.getElementById('filters-clear-btn'),
+    document.getElementById('filters-aside-btn'),
 );
 
 // product detail

@@ -4,16 +4,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
-  <link rel="stylesheet" href="css/vendor.css?180920">
-  <link rel="stylesheet" href="css/style.css?180920">
+  <title>Camera lens - 1</title>
+  <link rel="stylesheet" href="css/vendor.css?200920">
+  <link rel="stylesheet" href="css/style.css?200920">
 </head>
 
 <body>
   <div class="container container--fluid">
     <div class="row">
-      <div class="col">
-        <h1>Page Title</h1>
+      <div class="col header">
+        <div class="header__title__wrapper">
+          <h1 class="header__title">Page Title</h1>
+        </div>
       </div>
     </div>
     <div class="row">
@@ -21,6 +23,24 @@
         <div class="filter__wrapper" id="filters">
           <div class="filter__clear-overlay">
             <button type="button" class="filter__clear-overlay__btn" id="filters-clear-btn">Clear filter</button>
+          </div>
+          <div class="filter__switch">
+            <div class="filter__switch__input__btn">
+              <input type="radio" name="filter-type" data-filter-switch="purpose" id="filter-type-purpose" class="filter__switch__input" checked>
+              <label for="filter-type-purpose" class="filter__switch__input__label">
+                <div class="filter__switch__input__label__inner">
+                  Filter by purpose
+                </div>
+              </label>
+            </div>
+            <div class="filter__switch__input__btn">
+              <input type="radio" name="filter-type" data-filter-switch="lens-type" id="filter-type-lens-type" class="filter__switch__input">
+              <label for="filter-type-lens-type" class="filter__switch__input__label">
+                <div class="filter__switch__input__label__inner">
+                  Filter by lens type
+                </div>
+              </label>
+            </div>
           </div>
           <div class="filter">
             <div class="filter__section">
@@ -30,12 +50,14 @@
                   <input type="checkbox" id="35mm-full-size" class="filter__section__input" data-filter-value="35mmフルサイズ">
                   <label for="35mm-full-size" class="filter__section__input__label">
                     35mm full Size
+                    <img class="filter__section__input__label__img" src="https://picsum.photos/seed/picsum/300/200">
                   </label>
                 </div>
                 <div class="filter__section__input__btn">
                   <input type="checkbox" id="aps-c-size" class="filter__section__input" data-filter-value="APS-Cサイズ">
                   <label for="aps-c-size" class="filter__section__input__label">
                     APS-C Size
+                    <img class="filter__section__input__label__img" src="https://picsum.photos/seed/picsum/300/200">
                   </label>
                 </div>
               </div>
@@ -76,13 +98,13 @@
                   <div class="filter__section__input__btn">
                     <input type="checkbox" id="person-animal" class="filter__section__input" data-filter-value="person&animals">
                     <label for="person-animal" class="filter__section__input__label">
-                      Person Animal
+                      <span class="filter__section__input__label__title">Person Animal</span>
                     </label>
                   </div>
                   <div class="filter__section__input__btn">
                     <input type="checkbox" id="flower-food" class="filter__section__input" data-filter-value="flowers&foods">
                     <label for="flower-food" class="filter__section__input__label">
-                      Flower Food
+                      <span class="filter__section__input__label__title">Flower Food</span>
                     </label>
                   </div>
                 </div>
@@ -90,18 +112,23 @@
                   <div class="filter__section__input__btn">
                     <input type="checkbox" id="landscape" class="filter__section__input" data-filter-value="landscape">
                     <label for="landscape" class="filter__section__input__label">
-                      Landscape
+                      <span class="filter__section__input__label__title">Land scape</span>
                     </label>
                   </div>
                   <div class="filter__section__input__btn">
                     <input type="checkbox" id="moving-objects" class="filter__section__input" data-filter-value="moving&objects">
                     <label for="moving-objects" class="filter__section__input__label">
-                      Moving objects
+                      <span class="filter__section__input__label__title">Moving objects</span>
                     </label>
                   </div>
                 </div>
               </div>
             </div>
+          </div>
+          <div class="filter__aside">
+            <button type="button" class="filter__aside__btn" id="filters-aside-btn">
+              Select from All Lineups
+            </button>
           </div>
         </div>
       </div>
@@ -221,9 +248,9 @@
       </div>
     </div>
   </div>
-  <script src="js/vendor.js?180920"></script>
-  <script src="data.js?180920"></script>
-  <script src="js/script.js?180920"></script>
+  <script src="js/vendor.js?200920"></script>
+  <script src="data.js?200920"></script>
+  <script src="js/script.js?200920"></script>
 </body>
 
 </html>
