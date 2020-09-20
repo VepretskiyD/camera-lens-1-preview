@@ -342,16 +342,20 @@ function ProductPreviewCarousel(bus, productCarouselEl) {
 }
 
 function ProductPreviewInfo(bus, productPreviewInfoEl) {
-  var template = '<p class="product-detail__preview__info__description">:DESCRIPTION</p>' +
-                  '<p class="product-detail__preview__info__lens-type">:LENS_TYPE</p>' +
-                  '<p class="product-detail__preview__info__price">:PRICE</p>' +
+  var template = '<div class="product-detail__preview__info__header">' +
+                    '<p class="product-detail__preview__info__description">:DESCRIPTION</p>' +
+                    '<p class="product-detail__preview__info__lens-type">:LENS_TYPE</p>' +
+                    '<p class="product-detail__preview__info__price">:PRICE</p>' +
+                  '</div>' +
                   '<div class="product-detail__preview__info__category__wrapper">' +
                     '<div class="product-detail__preview__info__category" data-category="person&animals"><span class="product-detail__preview__info__category__title">Person Animal</span></div>' +
                     '<div class="product-detail__preview__info__category" data-category="landscape"><span class="product-detail__preview__info__category__title">Land scape</span></div>' +
                     '<div class="product-detail__preview__info__category" data-category="flowers&foods"><span class="product-detail__preview__info__category__title">Flower Food</span></div>' +
                     '<div class="product-detail__preview__info__category" data-category="moving&objects"><span class="product-detail__preview__info__category__title">Moving Objects</span></div>' +
                   '</div>' +
-                  '<a href=":HREF" target="_blank" class="product-detail__preview__info__btn">Go to product page</a>';
+                  '<a href=":HREF" target="_blank" class="product-detail__preview__info__btn">' +
+                    '<img class="product-detail__preview__info__btn__img" src="https://picsum.photos/seed/picsum/200/200">Go to product page' +
+                  '</a>';
 
   function renderPreview(product) {
     productPreviewInfoEl.innerHTML = template
