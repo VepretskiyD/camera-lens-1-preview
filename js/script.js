@@ -21,100 +21,150 @@ var PHOTO_LABELS = [
 ];
 // filters
 
-function Filter(bus, filtersEl, filtersClearBtnEl, filtersAsideBtnEl) {
-    this.get = getFilters;
-    this.reset = resetFilters;
-    this.showClearFilterOverlay = function() {
-        filtersEl.classList.add('filter__wrapper--clear-overlay');
-    }
+function Filter(bus, filtersEl, filtersClearBtnEl, filtersAsideBtnEl, products) {
+  this.get = getFilters;
+  this.reset = resetFilters;
+  this.showClearFilterOverlay = function () {
+    filtersEl.classList.add('filter__wrapper--clear-overlay');
+  }
 
-    var filters = {};
-    // get all filter inputs
-    var inputs = filtersEl.querySelectorAll('input[data-filter-value]');
-    // create summary filters object with group name, filter name and value from DOM
-    Array.prototype.forEach.call(inputs, function(input) {
-        var filterGroup = input.closest('[data-filter-name]').dataset.filterName;
-        var filterValue = input.dataset.filterValue;
-        if (!filters.hasOwnProperty(filterGroup)) {
-            filters[filterGroup] = {};
-        }
-        filters[filterGroup][filterValue] = {
-            state: input.checked,
-            el: input
-        };
+  var lensTabEl = filtersEl.querySelector('[data-filter-name="group"]');
+  renderLensTypeTab(lensTabEl);
+
+  function renderLensTypeTab(tabEl) {
+    var productsGroups = products
+      .map(function(product) {
+        return product.group;
+      })
+      .filter(function(elem, pos,arr) {
+        return arr.indexOf(elem) == pos;
+      })
+      .sort();
+    var templates = {
+      col: '<div class="filter__section__input__group__col">:ITEMS</div>',
+      item: '<div class="filter__section__input__btn">' +
+              '<input type="checkbox" id=":ID" class="filter__section__input" data-filter-value=":GROUP">' +
+              '<label for=":ID" class="filter__section__input__label">' +
+                '<span class="filter__section__input__label__title">:GROUP</span>' +
+                '<img class="filter__section__input__label__img" src=":SRC">' +
+              '</label>' +
+            '</div>'
+    };
+    var tabHTML = '';
+    var itemsHTML = '';
+    var currentCol = 0;
+    productsGroups.forEach(function (group, index, groups) {
+      itemsHTML += templates.item
+        .replace(/:ID/g, 'group-' + group)
+        .replace(/:GROUP/g, group)
+        .replace(':SRC', 'https://picsum.photos/seed/picsum/300/200');
+      if (currentCol === 1 || index === groups.length - 1) {
+        tabHTML += templates.col
+          .replace(':ITEMS', itemsHTML);
+        itemsHTML = '';
+        currentCol = 0;
+      } else {
+        currentCol += 1;
+      }
     });
+    tabEl.innerHTML = tabHTML;
+  }
 
-    // return only active filters
-    function getFilters() {
-        var groupKeys = Object.keys(filters);
-        var result = {};
-        groupKeys.forEach(function(groupKey) {
-            var itemKeys = Object.keys(filters[groupKey]);
-            itemKeys.forEach(function(itemKey) {
-                if (filters[groupKey][itemKey].state === true) {
-                    if (!result.hasOwnProperty(groupKey)) {
-                        result[groupKey] = [];
-                    }
-                    result[groupKey].push(itemKey);
-                }
-            });
-        });
-        return result;
+  var filters = {};
+  // get all filter inputs
+  var inputs = filtersEl.querySelectorAll('input[data-filter-value]');
+  // create summary filters object with group name, filter name and value from DOM
+  Array.prototype.forEach.call(inputs, function (input) {
+    var filterGroup = input.closest('[data-filter-name]').dataset.filterName;
+    var filterValue = input.dataset.filterValue;
+    if (!filters.hasOwnProperty(filterGroup)) {
+      filters[filterGroup] = {};
     }
+    filters[filterGroup][filterValue] = {
+      state: input.checked,
+      el: input
+    };
+  });
 
-    filtersClearBtnEl.addEventListener('click', function() {
-        filtersEl.classList.remove('filter__wrapper--clear-overlay');
-        resetFilters();
-        bus.emitEvent(EVENTS.FILTERS.CLEARED);
-    });
-
-    filtersAsideBtnEl.addEventListener('click', function() {
-        console.log('filters aside btn clicked');
-    });
-
-    // update filters summary on filter input change
-    filtersEl.addEventListener('change', function(e) {
-        var target = e.target;
-        if (target.dataset.filterValue) {
-            var filterGroup = target.closest('[data-filter-name]').dataset.filterName;
-            var filterValue = target.dataset.filterValue;
-            var filterAutoSelect = target.closest('[data-filter-auto-select]')
-                ? target.closest('[data-filter-auto-select]').dataset.filterAutoSelect
-                : null;
-            if (filterAutoSelect && target.checked) {
-                autoSelect(filterGroup, filterValue);
-            }
-            filters[filterGroup][filterValue].state = target.checked;
-            bus.emitEvent(EVENTS.FILTERS.CHANGED, [getFilters()]);
+  // return only active filters
+  function getFilters() {
+    var groupKeys = Object.keys(filters);
+    var result = {};
+    groupKeys.forEach(function (groupKey) {
+      var itemKeys = Object.keys(filters[groupKey]);
+      itemKeys.forEach(function (itemKey) {
+        if (filters[groupKey][itemKey].state === true) {
+          if (!result.hasOwnProperty(groupKey)) {
+            result[groupKey] = [];
+          }
+          result[groupKey].push(itemKey);
         }
-        if (target.dataset.filterSwitch) {
-            console.log('switched filters type to ', target.dataset.filterSwitch);
-        }
+      });
     });
+    return result;
+  }
 
-    // preselect previous inputs
-    function autoSelect(filterGroup, filterValue) {
-        var groupKeys = Object.keys(filters[filterGroup]);
-        var currentIndex = groupKeys.indexOf(filterValue);
-        for (var i = 0; i < currentIndex; i++) {
-            filters[filterGroup][groupKeys[i]].el.checked = true;
-            filters[filterGroup][groupKeys[i]].state = true;
-        }
-        autoSelectionPending = false;
+  filtersClearBtnEl.addEventListener('click', function () {
+    filtersEl.classList.remove('filter__wrapper--clear-overlay');
+    resetFilters();
+    bus.emitEvent(EVENTS.FILTERS.CLEARED);
+  });
+
+  filtersAsideBtnEl.addEventListener('click', function () {
+    console.log('filters aside btn clicked');
+  });
+
+  // update filters summary on filter input change
+  filtersEl.addEventListener('change', function (e) {
+    var target = e.target;
+    if (target.dataset.filterValue) {
+      var filterGroup = target.closest('[data-filter-name]').dataset.filterName;
+      var filterValue = target.dataset.filterValue;
+      var filterAutoSelect = target.closest('[data-filter-auto-select]')
+        ? target.closest('[data-filter-auto-select]').dataset.filterAutoSelect
+        : null;
+      if (filterAutoSelect && target.checked) {
+        autoSelect(filterGroup, filterValue);
+      }
+      filters[filterGroup][filterValue].state = target.checked;
+      bus.emitEvent(EVENTS.FILTERS.CHANGED, [getFilters()]);
     }
-
-    // reset all filters
-    function resetFilters() {
-        var groupKeys = Object.keys(filters);
-        groupKeys.forEach(function(groupKey) {
-            var itemKeys = Object.keys(filters[groupKey]);
-            itemKeys.forEach(function(itemKey) {
-                filters[groupKey][itemKey].el.checked = false;
-                filters[groupKey][itemKey].state = false;
-            });
-        });
-        bus.emitEvent(EVENTS.FILTERS.CHANGED, [getFilters()]);
+    if (target.dataset.filterSwitch) {
+      switchFilterTabTo(target.dataset.filterSwitch);
     }
+  });
+
+  function switchFilterTabTo(type) {
+    var activeTab = filtersEl.querySelector('.filter__section--tab--active');
+    var nextTab = filtersEl.querySelector('[data-tab=' + type + ']');
+    activeTab.classList.remove('filter__section--tab--active');
+    nextTab.classList.add('filter__section--tab--active');
+    resetFilters();
+  }
+
+  // preselect previous inputs
+  function autoSelect(filterGroup, filterValue) {
+    var groupKeys = Object.keys(filters[filterGroup]);
+    var currentIndex = groupKeys.indexOf(filterValue);
+    for (var i = 0; i < currentIndex; i++) {
+      filters[filterGroup][groupKeys[i]].el.checked = true;
+      filters[filterGroup][groupKeys[i]].state = true;
+    }
+    autoSelectionPending = false;
+  }
+
+  // reset all filters
+  function resetFilters() {
+    var groupKeys = Object.keys(filters);
+    groupKeys.forEach(function (groupKey) {
+      var itemKeys = Object.keys(filters[groupKey]);
+      itemKeys.forEach(function (itemKey) {
+        filters[groupKey][itemKey].el.checked = false;
+        filters[groupKey][itemKey].state = false;
+      });
+    });
+    bus.emitEvent(EVENTS.FILTERS.CHANGED, [getFilters()]);
+  }
 
 }
 // product grid
@@ -197,6 +247,7 @@ function ProductGrid(bus, productGridEl, productGridTitle, products) {
       grid.filter(function (item) {
         var itemEl = item.getElement();
         var itemProps = {
+          group: [itemEl.dataset.group],
           price: [itemEl.dataset.price],
           size: [itemEl.dataset.size],
           category: itemEl.dataset.category.split('|||'),
@@ -344,7 +395,7 @@ function ProductPreviewCarousel(bus, productCarouselEl) {
 function ProductPreviewInfo(bus, productPreviewInfoEl) {
   var template = '<div class="product-detail__preview__info__header">' +
                     '<p class="product-detail__preview__info__description">:DESCRIPTION</p>' +
-                    '<p class="product-detail__preview__info__lens-type">:LENS_TYPE</p>' +
+                    '<p class="product-detail__preview__info__lens-type">(:LENS_TYPE)</p>' +
                     '<p class="product-detail__preview__info__price">:PRICE</p>' +
                   '</div>' +
                   '<div class="product-detail__preview__info__category__wrapper">' +
@@ -360,7 +411,7 @@ function ProductPreviewInfo(bus, productPreviewInfoEl) {
   function renderPreview(product) {
     productPreviewInfoEl.innerHTML = template
       .replace(':DESCRIPTION', product.MPN)
-      .replace(':LENS_TYPE', '(dummy lens type)')
+      .replace(':LENS_TYPE', product.group)
       .replace(':PRICE', 'Price: $' + product.price / 100 + ' + Tax')
       .replace(':HREF', product.shop_url);
     var categories = productPreviewInfoEl.querySelectorAll('[data-category]');
@@ -634,7 +685,8 @@ var filter = new Filter(
     bus,
     document.getElementById('filters'),
     document.getElementById('filters-clear-btn'),
-    document.getElementById('filters-aside-btn')
+    document.getElementById('filters-aside-btn'),
+    products
 );
 
 // product detail

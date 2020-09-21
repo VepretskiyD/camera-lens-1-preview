@@ -1,7 +1,7 @@
 var products = [{
   MPN: 'SEL1224GM',
   price: '380920',
-  group: 'a',
+  group: 'b',
   size: '35mmフルサイズ',
   category:[,'landscape'],
   image_url: './img/SEL1224GM.jpg',
@@ -61,7 +61,7 @@ var products = [{
 },{
   MPN: 'SEL2470GM',
   price: '278000',
-  group: 'a',
+  group: 'b',
   size: '35mmフルサイズ',
   category:['person&animals','landscape','flowers&foods'],
   image_url: './img/SEL2470GM.jpg',

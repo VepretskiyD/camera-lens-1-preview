@@ -97,7 +97,8 @@ body {
   background-color: #7a7172; }
   @media all and (max-width: 1023px) {
     .filter {
-      flex-wrap: wrap; } }
+      flex-wrap: wrap;
+      justify-content: center; } }
   .filter__wrapper {
     position: relative;
     display: flex;
@@ -109,9 +110,23 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-grow: 1;
     padding: 0 10px;
     margin: 5px 0; }
+    .filter__section--tab {
+      padding: 0;
+      margin: 0;
+      border-right: 0 !important;
+      display: none;
+      opacity: 0;
+      position: absolute;
+      align-items: stretch; }
+      .filter__section--tab--active {
+        position: relative;
+        opacity: 1;
+        display: flex; }
+      @media all and (max-width: 1023px) {
+        .filter__section--tab {
+          flex-wrap: wrap; } }
     .filter__section:not(:last-child) {
       border-right: 2px solid #c3c5c4; }
     .filter__section__title {
@@ -136,6 +151,15 @@ body {
         align-self: stretch; }
         .filter__section__input__group--with-col {
           flex-direction: row; }
+        .filter__section__input__group[data-filter-name="group"] .filter__section__input__group__col:first-child {
+          margin-right: 20px; }
+        .filter__section__input__group[data-filter-name="group"] .filter__section__input__label {
+          padding: 5px;
+          justify-content: space-between;
+          max-height: 42px; }
+          .filter__section__input__group[data-filter-name="group"] .filter__section__input__label__img {
+            margin-left: 5px;
+            width: 35px; }
         .filter__section__input__group[data-filter-name="size"] .filter__section__input__label {
           padding: 5px;
           justify-content: space-between; }
