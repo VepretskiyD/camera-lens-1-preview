@@ -20,6 +20,8 @@ var PHOTO_LABELS = [
   'Micro',
   'Macro'
 ];
+
+var COMPARISON_FILTER_KEYS = ['size'];
 // mobile menu
 function Menu(bus, menuEl, menuToggleEl) {
   var isExpanded = false;
@@ -452,16 +454,22 @@ function ProductPreviewCarousel(bus, productCarouselEl) {
 }
 
 function ProductPreviewInfo(bus, productPreviewInfoEl) {
-  var template = '<div class="product-detail__preview__info__header">' +
-                    '<p class="product-detail__preview__info__description">:DESCRIPTION</p>' +
-                    '<p class="product-detail__preview__info__lens-type">(:LENS_TYPE)</p>' +
-                    '<p class="product-detail__preview__info__price">:PRICE</p>' +
-                  '</div>' +
-                  '<div class="product-detail__preview__info__category__wrapper">' +
-                    '<div class="product-detail__preview__info__category" data-category="person&animals"><span class="product-detail__preview__info__category__title">Person Animal</span></div>' +
-                    '<div class="product-detail__preview__info__category" data-category="landscape"><span class="product-detail__preview__info__category__title">Land scape</span></div>' +
-                    '<div class="product-detail__preview__info__category" data-category="flowers&foods"><span class="product-detail__preview__info__category__title">Flower Food</span></div>' +
-                    '<div class="product-detail__preview__info__category" data-category="moving&objects"><span class="product-detail__preview__info__category__title">Moving Objects</span></div>' +
+  var template = '<div class="product-detail__preview__info__inner">' +
+                    '<div class="product-detail__preview__info__header">' +
+                      '<p class="product-detail__preview__info__description">:DESCRIPTION</p>' +
+                      '<p class="product-detail__preview__info__lens-type">(:LENS_TYPE)</p>' +
+                      '<p class="product-detail__preview__info__price">:PRICE</p>' +
+                      '<p class="product-detail__preview__info__other">MINIMUM APERTURE (F): :MIN_APERTURE</p>' +
+                      '<p class="product-detail__preview__info__other">FOCAL LENGTH (MM): :FOCAL_LENGTH</p>' +
+                      '<p class="product-detail__preview__info__other">MAXIMUM MAGNIFICATION RATIO: (X): :MAX_MAGNIFICATION_RATIO</p>' +
+                      '<p class="product-detail__preview__info__other">WEIGHT: :WEIGHT</p>' +
+                    '</div>' +
+                    '<div class="product-detail__preview__info__category__wrapper">' +
+                      '<div class="product-detail__preview__info__category" data-category="person&animals"><span class="product-detail__preview__info__category__title">Person Animal</span></div>' +
+                      '<div class="product-detail__preview__info__category" data-category="landscape"><span class="product-detail__preview__info__category__title">Land scape</span></div>' +
+                      '<div class="product-detail__preview__info__category" data-category="flowers&foods"><span class="product-detail__preview__info__category__title">Flower Food</span></div>' +
+                      '<div class="product-detail__preview__info__category" data-category="moving&objects"><span class="product-detail__preview__info__category__title">Moving Objects</span></div>' +
+                    '</div>' +
                   '</div>' +
                   '<a href=":HREF" target="_blank" class="product-detail__preview__info__btn">' +
                     '<img class="product-detail__preview__info__btn__img" src="https://picsum.photos/seed/picsum/200/200">Go to product page' +
@@ -472,6 +480,10 @@ function ProductPreviewInfo(bus, productPreviewInfoEl) {
       .replace(':DESCRIPTION', product.MPN)
       .replace(':LENS_TYPE', product.group)
       .replace(':PRICE', 'Price: $' + product.price / 100 + ' + Tax')
+      .replace(':MIN_APERTURE', '-')
+      .replace(':FOCAL_LENGTH', '-')
+      .replace(':MAX_MAGNIFICATION_RATIO', '-')
+      .replace(':WEIGHT', '-')
       .replace(':HREF', product.shop_url);
     var categories = productPreviewInfoEl.querySelectorAll('[data-category]');
     Array.prototype.forEach.call(categories, function(category) {
@@ -705,17 +717,29 @@ function ProductComparison(bus, productComparisonEl, productComparisonBtnEl, pro
     }
   }
 
+  function showItems(key, index) {
+    var itemsToShow = productComparisonEl
+      .querySelectorAll('[data-product-group="' + key + '"][data-product-index="' + index + '"]');
+    Array.prototype.forEach.call(itemsToShow, function(item) {
+      item.style.display = '';
+    });
+  }
+
+  function hideItems(key, index) {
+    var itemsToHide = productComparisonEl
+      .querySelectorAll('[data-product-group="' + key + '"][data-product-index="' + index + '"]');
+    Array.prototype.forEach.call(itemsToHide, function(item) {
+      item.style.display = 'none';
+    });
+  }
+
   function filterChecked() {
     checkedProducts = [];
     var groupKeys = Object.keys(productsByGroup);
     groupKeys.forEach(function(key) {
       productsByGroup[key].forEach(function(product, index) {
         if (!product.checked) {
-          var itemsToHide = productComparisonEl
-            .querySelectorAll('[data-product-group="' + key + '"][data-product-index="' + index + '"]');
-          Array.prototype.forEach.call(itemsToHide, function(item) {
-            item.style.display = 'none';
-          });
+          hideItems(key, index);
         } else {
           checkedProducts.push(product.index);
         }
@@ -723,16 +747,40 @@ function ProductComparison(bus, productComparisonEl, productComparisonBtnEl, pro
     });
   }
 
+  function filterBy(filtersData) {
+    var filterKeys = Object.keys(filtersData);
+    var groupKeys = Object.keys(productsByGroup);
+    if (filterKeys.length) {
+      filterKeys.forEach(function(filterKey) {
+        groupKeys.forEach(function(key) {
+          productsByGroup[key].forEach(function(product, index) {
+            if (product.data.hasOwnProperty(filterKey)
+              && filtersData[filterKey].includes(product.data[filterKey])) {
+              showItems(key, index);
+            } else {
+              hideItems(key, index);
+              product.input.checked = false;
+              product.checked = false;
+            }
+          });
+        });
+      });
+    } else {
+      groupKeys.forEach(function(key) {
+        productsByGroup[key].forEach(function(product, index) {
+          showItems(key, index);
+        });
+      });
+    }
+    
+  }
+
   function reset() {
     var groupKeys = Object.keys(productsByGroup);
     groupKeys.forEach(function(key) {
       productsByGroup[key].forEach(function(product, index) {
         if (!product.checked) {
-          var itemsToShow = productComparisonEl
-          .querySelectorAll('[data-product-group="' + key + '"][data-product-index="' + index + '"]');
-          Array.prototype.forEach.call(itemsToShow, function(item) {
-            item.style.display = '';
-          });
+          showItems(key, index);
         } else {
           product.input.checked = false;
           product.checked = false;
@@ -751,6 +799,7 @@ function ProductComparison(bus, productComparisonEl, productComparisonBtnEl, pro
   this.init = init;
   this.highlightActive = highlightActive;
   this.scroll = scroll;
+  this.filterBy = filterBy;
 }
 // script
 var bus = new EventEmitter();
@@ -823,6 +872,14 @@ function hideProductSectionOverlay() {
 
 bus.addListener(EVENTS.FILTERS.CHANGED, function(data) {
     productGrid.filterBy(data);
+    // prepare filter data for comparison section
+    var comparisonFilterData = {};
+    Object.keys(data).forEach(function(key) {
+        if (COMPARISON_FILTER_KEYS.includes(key)) {
+            comparisonFilterData[key] = data[key];
+        }
+    });
+    productComparison.filterBy(comparisonFilterData);
 });
 bus.addListener(EVENTS.FILTERS.CLEARED, function() {
     productComparison.reset();

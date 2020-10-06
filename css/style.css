@@ -546,11 +546,17 @@ body {
   @media all and (max-width: 767px) {
     .product-detail__preview__info {
       width: calc(55% - 30px); } }
+  .product-detail__preview__info__inner {
+    display: flex; }
+    @media all and (max-width: 767px) {
+      .product-detail__preview__info__inner {
+        flex-direction: column; } }
   .product-detail__preview__info__header {
     display: flex;
     flex-direction: column;
-    margin: 0 auto 10px auto;
-    color: #cacaca; }
+    margin: 0 5px 0 0;
+    color: #cacaca;
+    flex-grow: 1; }
     @media all and (max-width: 767px) {
       .product-detail__preview__info__header {
         margin: 0 0 10px; } }
@@ -563,19 +569,29 @@ body {
   .product-detail__preview__info__price {
     margin-bottom: 0;
     line-height: 1.2; }
+  .product-detail__preview__info__other {
+    margin-bottom: 5px;
+    margin-top: 5px;
+    line-height: normal;
+    font-size: 10px; }
   .product-detail__preview__info__category {
     display: flex;
     position: relative;
     align-items: center;
     margin: 5px;
-    width: calc(50% - 10px);
+    width: calc(100% - 10px);
     max-width: 120px;
+    min-width: 110px;
     height: 42px;
     border-radius: 5px;
     background-color: #888888;
     opacity: .5;
     transition: opacity .3s ease-in-out;
     overflow: hidden; }
+    @media all and (max-width: 767px) {
+      .product-detail__preview__info__category {
+        width: calc(50% - 10px);
+        min-width: unset; } }
     .product-detail__preview__info__category:before {
       content: '';
       position: absolute;
@@ -608,9 +624,19 @@ body {
       opacity: 1; }
     .product-detail__preview__info__category__wrapper {
       display: flex;
+      flex-direction: column;
       flex-wrap: wrap;
-      margin: auto -5px;
-      justify-content: space-evenly; }
+      margin: -5px;
+      flex-shrink: 0;
+      justify-content: space-evenly;
+      flex-grow: 1; }
+      @media all and (max-width: 1023px) {
+        .product-detail__preview__info__category__wrapper {
+          flex-direction: row;
+          margin: auto -5px; } }
+      @media all and (max-width: 767px) {
+        .product-detail__preview__info__category__wrapper {
+          flex-shrink: 1; } }
   .product-detail__preview__info__btn {
     display: flex;
     align-items: center;
