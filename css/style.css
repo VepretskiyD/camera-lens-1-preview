@@ -556,7 +556,12 @@ body {
     flex-direction: column;
     margin: 0 5px 0 0;
     color: #cacaca;
-    flex: 1; }
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 100%; }
+    @media all and (max-width: 1023px) {
+      .product-detail__preview__info__header {
+        flex-basis: auto; } }
     @media all and (max-width: 767px) {
       .product-detail__preview__info__header {
         margin: 0 0 10px; } }
@@ -629,9 +634,12 @@ body {
       margin: -5px;
       flex-shrink: 0;
       justify-content: space-evenly;
-      flex: 1; }
+      flex-grow: 1;
+      flex-shrink: 1;
+      flex-basis: auto; }
       @media all and (max-width: 1023px) {
         .product-detail__preview__info__category__wrapper {
+          flex-basis: auto;
           flex-direction: row;
           margin: auto -5px; } }
       @media all and (max-width: 767px) {
