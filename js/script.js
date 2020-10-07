@@ -523,6 +523,7 @@ function ProductSlide(bus, productSlideEl, productCommentEl) {
       freeMode: true,
       watchSlidesVisibility: true,
       watchSlidesProgress: true,
+      centerInsufficientSlides: true,
     });
     topCarousel = new Swiper(productSlideEl.querySelector('.gallery-top'), {
       spaceBetween: 10,
