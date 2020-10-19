@@ -314,7 +314,8 @@ body {
     text-decoration: none;
     font-size: 30px;
     width: 30%;
-    max-width: 380px; }
+    max-width: 380px;
+    min-width: 300px; }
     .filter__clear-overlay__btn:hover, .filter__back-overlay__btn:hover {
       color: #000;
       text-decoration: none; }
