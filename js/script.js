@@ -5,6 +5,7 @@ var EVENTS = {
     CHANGED: 'filters-changes',
     CLEARED: 'filters-cleared',
     SELECT_ALL: 'filters-select-all-lineups',
+    RESTORED: 'filters-restored',
   },
   PRODUCTS: {
     ITEM_ACTIVATED: 'product-activated',
@@ -57,11 +58,14 @@ function Menu(bus, menuEl, menuToggleEl) {
 }
 // filters
 
-function Filter(bus, filtersEl, filtersClearBtnEl, filtersAsideBtnEl, products) {
+function Filter(bus, filtersEl, filtersClearBtnEl, filtersBackBtnEl, filtersAsideBtnEl, products) {
   this.get = getFilters;
   this.reset = resetFilters;
   this.showClearFilterOverlay = function () {
     filtersEl.classList.add('filter__wrapper--clear-overlay');
+  }
+  this.showBackFilterOverlay = function () {
+    filtersEl.classList.add('filter__wrapper--back-overlay');
   }
 
   var lensTabEl = filtersEl.querySelector('[data-filter-name="group"]');
@@ -144,6 +148,12 @@ function Filter(bus, filtersEl, filtersClearBtnEl, filtersAsideBtnEl, products) 
     filtersEl.classList.remove('filter__wrapper--clear-overlay');
     resetFilters();
     bus.emitEvent(EVENTS.FILTERS.CLEARED);
+  });
+
+  filtersBackBtnEl.addEventListener('click', function () {
+    filtersEl.classList.remove('filter__wrapper--back-overlay');
+    bus.emitEvent(EVENTS.FILTERS.RESTORED);
+    bus.emitEvent(EVENTS.FILTERS.CHANGED, [getFilters()]);
   });
 
   filtersAsideBtnEl.addEventListener('click', function () {
@@ -591,7 +601,9 @@ function ProductComparison(bus, productComparisonEl, productComparisonBtnEl, pro
                     '</div>' +
                   '</div>' +
                 '</div>',
-      label: '<div class="product-compare__header__label">:GROUP</div>',
+      label: '<div class="product-compare__header__label">' +
+                '<div class="product-compare__header__label__inner">:GROUP</div>' +
+              '</div>',
       item: '<div class="product-compare__header__item" data-header-item data-product-group=":GROUP" data-product-index=":INDEX">' +
               '<label class="product-compare__header__item__label">' +
                 '<input type="checkbox" class="product-compare__header__item__checkbox">' +
@@ -817,6 +829,7 @@ var filter = new Filter(
     bus,
     document.getElementById('filters'),
     document.getElementById('filters-clear-btn'),
+    document.getElementById('filters-back-btn'),
     document.getElementById('filters-aside-btn'),
     products
 );
@@ -885,9 +898,12 @@ bus.addListener(EVENTS.FILTERS.CHANGED, function(data) {
 bus.addListener(EVENTS.FILTERS.CLEARED, function() {
     productComparison.reset();
 });
+bus.addListener(EVENTS.FILTERS.RESTORED, function() {
+    productComparison.reset();
+});
 bus.addListener(EVENTS.COMPARISON.FILTER_CHECKED, function(data) {
     hideProductSectionOverlay();
-    filter.showClearFilterOverlay();
+    filter.showBackFilterOverlay();
     productGrid.matchComparison(data);
 });
 bus.addListener(EVENTS.PRODUCTS.ITEM_ACTIVATED, function(data) {
