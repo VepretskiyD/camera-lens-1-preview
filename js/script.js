@@ -22,6 +22,11 @@ var PHOTO_LABELS = [
   'Macro'
 ];
 
+var SIZE_IMG = {
+  '35mmフルサイズ': 'https://d3cej1t8rg2izd.cloudfront.net/camera-lens-finder/img/full.png',
+  'APS-C': 'https://d3cej1t8rg2izd.cloudfront.net/camera-lens-finder/img/aps-c.png',
+};
+
 var COMPARISON_FILTER_KEYS = ['size'];
 // mobile menu
 function Menu(bus, menuEl, menuToggleEl) {
@@ -404,14 +409,29 @@ function ProductGrid(bus, productGridEl, productGridTitle, products) {
 }
 
 // product preview carousel
-function ProductPreviewCarousel(bus, productCarouselEl) {
-  var template = '<div class="swiper-slide">' +
-                    '<div class="product-detail__preview__carousel__item__wrapper">' +
-                      '<div class="product-detail__preview__carousel__item">' +
-                        '<img src=":SRC">' +
-                      '</div>' +
-                    '</div>' +
-                  '</div>';
+function ProductPreviewCarousel(bus, productCarouselEl, brandsPrizesEl, sizeItemsEl) {
+  var templates = {
+    slide: '<div class="swiper-slide">' +
+            '<div class="product-detail__preview__carousel__item__wrapper">' +
+              '<div class="product-detail__preview__carousel__item">' +
+                '<img src=":SRC">' +
+              '</div>' +
+            '</div>' +
+          '</div>',
+    brandPrizeIcons: '<div class="product-detail__preview__info__brands-prizes">' +
+                      '<div class="product-detail__preview__info__brands">:BRANDS</div>' +
+                      '<div class="product-detail__preview__info__prizes">:PRIZES</div>' +
+                    '</div>',
+    brandPrizeIcon: '<div class="product-detail__preview__info__brands-prizes__item">' +
+                      '<img class="product-detail__preview__info__brands-prizes__img" src=":SRC">' +
+                    '</div>',
+    size: '<div class="product-detail__preview__info__size">:SIZE_ITEMS</div>',
+    sizeItem: '<div class="product-detail__preview__info__size__item" data-active=":ACTIVE">' +
+                '<div class="w-100 h-100">' +
+                  '<img class="product-detail__preview__info__brands-prizes__img" src=":SRC">' +
+                '</div>' +
+              '</div>',
+  }
   var topCarousel = null;
   var thumbsCarousel = null;
 
@@ -421,9 +441,41 @@ function ProductPreviewCarousel(bus, productCarouselEl) {
   }
   function renderPreview(productImg) {
     productImg.forEach(function(img, index) {
-      topCarousel.addSlide(index, template.replace(':SRC', img));
-      thumbsCarousel.addSlide(index, template.replace(':SRC', img));
+      topCarousel.addSlide(index, templates.slide.replace(':SRC', img));
+      thumbsCarousel.addSlide(index, templates.slide.replace(':SRC', img));
     });
+  }
+  function renderBrandsPrizes(product) {
+    var brandsHtml = '';
+    var brands = product.brand_src.filter(function(brand) {
+      return brand.length;
+    });
+    brands.forEach(function(brand) {
+      brandsHtml += templates.brandPrizeIcon
+        .replace(':SRC', brand);
+    });
+    var prizesHtml = '';
+    var prizes = product.prize_src.filter(function(prize) {
+      return prize.length;
+    });
+    prizes.forEach(function(prize) {
+      prizesHtml += templates.brandPrizeIcon
+        .replace(':SRC', prize);
+    });
+    brandsPrizesEl.innerHTML = templates.brandPrizeIcons
+      .replace(':BRANDS', brandsHtml)
+      .replace(':PRIZES', prizesHtml);
+  }
+  function renderSize(product) {
+    var sizeKeys = Object.keys(SIZE_IMG);
+    var html = '';
+    sizeKeys.forEach(function(key) {
+      html += templates.sizeItem
+        .replace(':SRC', SIZE_IMG[key])
+        .replace(':ACTIVE', product.size === key);
+    });
+    sizeItemsEl.innerHTML = templates.size
+      .replace(':SIZE_ITEMS', html);
   }
   function init() {
     thumbsCarousel = new Swiper(productCarouselEl.querySelector('.gallery-thumbs'), {
@@ -460,61 +512,169 @@ function ProductPreviewCarousel(bus, productCarouselEl) {
       productCarouselEl.style.opacity = '';
       productCarouselEl.style.height = '';
     }, 300);
+    renderBrandsPrizes(data);
+    renderSize(data);
   };
 }
 
-function ProductPreviewInfo(bus, productPreviewInfoEl) {
-  var template = '<div class="product-detail__preview__info__inner">' +
-                    '<div class="product-detail__preview__info__header">' +
-                      '<p class="product-detail__preview__info__description">:DESCRIPTION</p>' +
-                      '<p class="product-detail__preview__info__lens-type">(:LENS_TYPE)</p>' +
-                      '<p class="product-detail__preview__info__price">:PRICE</p>' +
-                      '<p class="product-detail__preview__info__other">MINIMUM APERTURE (F): :MIN_APERTURE</p>' +
-                      '<p class="product-detail__preview__info__other">FOCAL LENGTH (MM): :FOCAL_LENGTH</p>' +
-                      '<p class="product-detail__preview__info__other">MAXIMUM MAGNIFICATION RATIO: (X): :MAX_MAGNIFICATION_RATIO</p>' +
-                      '<p class="product-detail__preview__info__other">WEIGHT: :WEIGHT</p>' +
-                    '</div>' +
-                    '<div class="product-detail__preview__info__category__wrapper">' +
-                      '<div class="product-detail__preview__info__category" data-category="person&animals"><span class="product-detail__preview__info__category__title">Person Animal</span></div>' +
-                      '<div class="product-detail__preview__info__category" data-category="landscape"><span class="product-detail__preview__info__category__title">Land scape</span></div>' +
-                      '<div class="product-detail__preview__info__category" data-category="flowers&foods"><span class="product-detail__preview__info__category__title">Flower Food</span></div>' +
-                      '<div class="product-detail__preview__info__category" data-category="moving&objects"><span class="product-detail__preview__info__category__title">Moving Objects</span></div>' +
-                    '</div>' +
-                  '</div>' +
-                  '<a href=":HREF" target="_blank" class="product-detail__preview__info__btn">' +
-                    '<img class="product-detail__preview__info__btn__img" src="https://picsum.photos/seed/picsum/200/200">Go to product page' +
-                  '</a>';
+function ProductPreviewInfo(bus, productPreviewInfoEl, productDescriptionEl) {
+  var templates = {
+    wrapper: '<div class="product-detail__preview__info__inner">' +
+                ':HEADER' +
+                ':CATEGORY' +
+              '</div>' +
+              ':BTN',
+    header: '<div class="product-detail__preview__info__header">' +
+                '<div class="product-detail__preview__info__header__description">:DESCRIPTION</div>' +
+                ':SIZE' +
+                ':SPECS' +
+                ':BRAND_PRIZE_ICONS' +
+            '</div>',
+    descriptionTitle: '<p class="product-detail__preview__info__description">' +
+                        ':DESCRIPTION <span class="product-detail__preview__info__lens-type">(:LENS_TYPE)</span>' +
+                      '</p>' +
+                      '<p class="product-detail__preview__info__price">:PRICE</p>',
+    description: '<p class="product-detail__preview__info__description">:DESCRIPTION</p>' +
+                '<p class="product-detail__preview__info__lens-type">(:LENS_TYPE)</p>' +
+                '<p class="product-detail__preview__info__price">:PRICE</p>',
+    size: '<div class="product-detail__preview__info__size">:SIZE_ITEMS</div>',
+    sizeItem: '<div class="product-detail__preview__info__size__item" data-active=":ACTIVE">' +
+                '<div class="w-100 h-100">' +
+                  '<img class="product-detail__preview__info__brands-prizes__img" src=":SRC">' +
+                '</div>' +
+              '</div>',
+    specs: '<p class="product-detail__preview__info__other">MINIMUM APERTURE (F): :MIN_APERTURE</p>' +
+            '<p class="product-detail__preview__info__other">FOCAL LENGTH (MM): :FOCAL_LENGTH</p>' +
+            '<p class="product-detail__preview__info__other">MAXIMUM MAGNIFICATION RATIO: (X): :MAX_MAGNIFICATION_RATIO</p>' +
+            '<p class="product-detail__preview__info__other">WEIGHT: :WEIGHT</p>',
+    brandPrizeIcons: '<div class="product-detail__preview__info__brands-prizes">' +
+                      '<div class="product-detail__preview__info__brands">:BRANDS</div>' +
+                      '<div class="product-detail__preview__info__prizes">:PRIZES</div>' +
+                    '</div>',
+    brandPrizeIcon: '<div class="product-detail__preview__info__brands-prizes__item">' +
+                      '<img class="product-detail__preview__info__brands-prizes__img" src=":SRC">' +
+                    '</div>',
+    category: '<div class="product-detail__preview__info__category__wrapper">' +
+                '<div class="product-detail__preview__info__category" data-category="person&animals"><span class="product-detail__preview__info__category__title">Person Animal</span></div>' +
+                '<div class="product-detail__preview__info__category" data-category="landscape"><span class="product-detail__preview__info__category__title">Land scape</span></div>' +
+                '<div class="product-detail__preview__info__category" data-category="flowers&foods"><span class="product-detail__preview__info__category__title">Flower Food</span></div>' +
+                '<div class="product-detail__preview__info__category" data-category="moving&objects"><span class="product-detail__preview__info__category__title">Moving Objects</span></div>' +
+              '</div>',
+    btn: '<a href=":HREF" target="_blank" class="product-detail__preview__info__btn">' +
+            '<img class="product-detail__preview__info__btn__img" src="https://picsum.photos/seed/picsum/200/200">Go to product page' +
+          '</a>'
+  };
 
-  function renderPreview(product) {
-    productPreviewInfoEl.innerHTML = template
+  function renderHeader(product) {
+    var descriptionHtml = templates.description
       .replace(':DESCRIPTION', product.MPN)
       .replace(':LENS_TYPE', product.group)
-      .replace(':PRICE', 'Price: $' + product.price / 100 + ' + Tax')
+      .replace(':PRICE', 'Price: $' + product.price / 100 + ' + Tax');
+    var sizeHtml = templates.size
+      .replace(':SIZE_ITEMS', renderSizeItems(product));
+    var specsHtml = templates.specs
       .replace(':MIN_APERTURE', '-')
       .replace(':FOCAL_LENGTH', '-')
       .replace(':MAX_MAGNIFICATION_RATIO', '-')
-      .replace(':WEIGHT', '-')
+      .replace(':WEIGHT', '-');
+    return templates.header
+      .replace(':DESCRIPTION', descriptionHtml)
+      .replace(':SIZE', sizeHtml)
+      .replace(':SPECS', specsHtml)
+      .replace(':BRAND_PRIZE_ICONS', renderBrandPrizeIcons(product));
+  }
+
+  function renderSizeItems(product) {
+    var sizeKeys = Object.keys(SIZE_IMG);
+    var html = '';
+    sizeKeys.forEach(function(key) {
+      html += templates.sizeItem
+        .replace(':SRC', SIZE_IMG[key])
+        .replace(':ACTIVE', product.size === key);
+    });
+    return html;
+  }
+
+  function renderBrandPrizeIcons(product) {
+    var brandsHtml = '';
+    var brands = product.brand_src.filter(function(brand) {
+      return brand.length;
+    });
+    brands.forEach(function(brand) {
+      brandsHtml += templates.brandPrizeIcon
+        .replace(':SRC', brand);
+    });
+    var prizesHtml = '';
+    var prizes = product.prize_src.filter(function(prize) {
+      return prize.length;
+    });
+    prizes.forEach(function(prize) {
+      prizesHtml += templates.brandPrizeIcon
+        .replace(':SRC', prize);
+    });
+    return templates.brandPrizeIcons
+      .replace(':BRANDS', brandsHtml)
+      .replace(':PRIZES', prizesHtml);
+  }
+
+  function renderCategory(product) {
+    return templates.category;
+  }
+
+  function renderBtn(product) {
+    return templates.btn
       .replace(':HREF', product.shop_url);
+  }
+
+  function renderPreview(product) {
+    productPreviewInfoEl.innerHTML = templates.wrapper
+      .replace(':HEADER', renderHeader(product))
+      .replace(':CATEGORY', renderCategory(product))
+      .replace(':BTN', renderBtn(product));
     var categories = productPreviewInfoEl.querySelectorAll('[data-category]');
     Array.prototype.forEach.call(categories, function(category) {
       if (product.category.indexOf(category.dataset.category) !== -1) {
         category.classList.add('product-detail__preview__info__category--active');
       }
     });
+    productDescriptionEl.innerHTML = templates.descriptionTitle
+      .replace(':DESCRIPTION', product.MPN)
+      .replace(':LENS_TYPE', product.group)
+      .replace(':PRICE', 'Price: $' + product.price / 100 + ' + Tax');
   }
 
   this.renderPreview = renderPreview;
 }
-function ProductSlide(bus, productSlideEl, productCommentEl) {
-  var template = '<div class="swiper-slide">' +
+function ProductSlide(bus, slideInfo, productSlideEl, productCommentEl, productSlideInfoEl) {
+  var template = '<div class="swiper-slide" data-filename=":FILENAME">' +
                     '<div class="product-gallery__item__wrapper">' +
                       '<div class="product-gallery__item">' +
                         '<img src=":SRC">' +
                       '</div>' +
                     '</div>' +
                   '</div>';
+  var slideInfoTemplate = '<span class="hidden">:CONTRIBUTOR</span>' +
+                          '<span>:SETTINGS</span>' +
+                          '<span>:CONTRIBUTOR</span';
   var topCarousel = null;
   var thumbsCarousel = null;
+  var slideInfoKeys = [];
+
+  function getSlideInfo(filename) {
+    var info = {
+      settings: '',
+      contributor: ''
+    };
+    var index = slideInfoKeys.findIndex(function(item) {
+      return item === filename;
+    });
+    var data = slideInfo[index];
+    if (data) {
+      info.settings = data.iso_sensitivity + ' ' + data.focal_ratio + ' ' + data.shutter_speed;
+      info.contributor = data.attribution;
+    }
+    return info;
+  }
 
   function removeAllSlides() {
     topCarousel.removeAllSlides();
@@ -522,9 +682,17 @@ function ProductSlide(bus, productSlideEl, productCommentEl) {
   }
   function renderGallery(productImg) {
     productImg.forEach(function(img, index) {
-      topCarousel.addSlide(index, template.replace(':SRC', img));
+      topCarousel.addSlide(index, template
+        .replace(':SRC', img)
+        .replace(':FILENAME', img.split('/').pop()));
       thumbsCarousel.addSlide(index, template.replace(':SRC', img));
     });
+  }
+  function renderGallerySlideInfo(slide) {
+    var slideData = getSlideInfo(slide.dataset.filename);
+    productSlideInfoEl.innerHTML = slideInfoTemplate
+      .replace(':SETTINGS', slideData.settings)
+      .replace(/:CONTRIBUTOR/g, slideData.contributor);
   }
   function init() {
     thumbsCarousel = new Swiper(productSlideEl.querySelector('.gallery-thumbs'), {
@@ -543,7 +711,15 @@ function ProductSlide(bus, productSlideEl, productCommentEl) {
       },
       thumbs: {
         swiper: thumbsCarousel
+      },
+      on: {
+        slideChangeTransitionEnd: function(el) {
+          renderGallerySlideInfo(el.slides[el.activeIndex]);
+        },
       }
+    });
+    slideInfoKeys = slideInfo.map(function(item) {
+      return item.filename;
     });
   }
 
@@ -557,6 +733,7 @@ function ProductSlide(bus, productSlideEl, productCommentEl) {
     }, 150);
     setTimeout(function() {
       productCommentEl.innerHTML = data.comment;
+      renderGallerySlideInfo(topCarousel.slides[topCarousel.activeIndex]);
       productSlideEl.style.opacity = '';
       productSlideEl.style.height = '';
     }, 300);
@@ -583,6 +760,7 @@ function ProductComparison(bus, productComparisonEl, productComparisonBtnEl, pro
       el: null,
       input: null,
       checked: false,
+      visible: true,
       index: index
     });
   });
@@ -736,6 +914,7 @@ function ProductComparison(bus, productComparisonEl, productComparisonBtnEl, pro
     Array.prototype.forEach.call(itemsToShow, function(item) {
       item.style.display = '';
     });
+    productsByGroup[key][index].visible = true;
   }
 
   function hideItems(key, index) {
@@ -743,6 +922,21 @@ function ProductComparison(bus, productComparisonEl, productComparisonBtnEl, pro
       .querySelectorAll('[data-product-group="' + key + '"][data-product-index="' + index + '"]');
     Array.prototype.forEach.call(itemsToHide, function(item) {
       item.style.display = 'none';
+    });
+    productsByGroup[key][index].visible = false;
+  }
+
+  function toggleGroups() {
+    var groupKeys = Object.keys(productsByGroup);
+    groupKeys.forEach(function(key) {
+      var groupVisible = productsByGroup[key]
+        .filter(function(item) {
+          return item.visible;
+        })
+        .length;
+      var groupEl = productComparisonEl
+        .querySelector('[data-section-product-group="' + key + '"]');
+      groupEl.style.display = groupVisible ? '' : 'none';
     });
   }
 
@@ -758,6 +952,7 @@ function ProductComparison(bus, productComparisonEl, productComparisonBtnEl, pro
         }
       });
     });
+    toggleGroups();
   }
 
   function filterBy(filtersData) {
@@ -785,6 +980,7 @@ function ProductComparison(bus, productComparisonEl, productComparisonBtnEl, pro
         });
       });
     }
+    toggleGroups();
     
   }
 
@@ -800,6 +996,7 @@ function ProductComparison(bus, productComparisonEl, productComparisonBtnEl, pro
         }
       });
     });
+    toggleGroups();
   }
 
   function scroll() {
@@ -838,12 +1035,15 @@ var filter = new Filter(
 // product preview carousel
 var productPreviewCarousel = new ProductPreviewCarousel(
     bus,
-    document.getElementById('selected-product-carousel')
+    document.getElementById('selected-product-carousel'),
+    document.getElementById('brands-prizes'),
+    document.getElementById('sizes')
 );
 // product preview info
 var productPreviewInfo = new ProductPreviewInfo(
     bus,
-    document.getElementById('selected-product-info')
+    document.getElementById('selected-product-info'),
+    document.getElementById('product-description')
 );
 // product grid
 var productGrid = new ProductGrid(
@@ -855,8 +1055,10 @@ var productGrid = new ProductGrid(
 // product slide
 var productSlide = new ProductSlide(
     bus,
+    slide_info,
     document.getElementById('selected-product-gallery'),
-    document.getElementById('selected-product-comment')
+    document.getElementById('selected-product-comment'),
+    document.getElementById('selected-product-gallery-slide-info')
 );
 
 // product comparison

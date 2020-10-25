@@ -5,8 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Camera lens - 1</title>
-  <link rel="stylesheet" href="css/vendor.css?250920">
-  <link rel="stylesheet" href="css/style.css?1910202048">
+  <link rel="stylesheet" href="css/vendor.css?251020">
+  <link rel="stylesheet" href="css/style.css?251020">
 </head>
 
 <body>
@@ -59,7 +59,7 @@
                       </label>
                     </div>
                     <div class="filter__section__input__btn">
-                      <input type="checkbox" id="aps-c-size" class="filter__section__input" data-filter-value="APS-Cサイズ">
+                      <input type="checkbox" id="aps-c-size" class="filter__section__input" data-filter-value="APS-C">
                       <label for="aps-c-size" class="filter__section__input__label">
                         APS-C Size
                         <img class="filter__section__input__label__img" src="https://picsum.photos/seed/picsum/300/200">
@@ -148,47 +148,54 @@
       </div>
     </div>
     <div class="row" id="product-section">
+      <div class="col" id="product-description"></div>
       <div class="col col--half col--border-right">
         <div class="product-detail__wrapper">
           <div class="product-detail__preview row">
-            <div class="product-detail__preview__carousel col col--half" id="selected-product-carousel">
-              <div class="product-detail__preview__carousel__wrapper">
-                <div class="swiper-container gallery-top">
-                  <div class="swiper-wrapper">
-                    <div class="swiper-slide">
-                      <div class="product-detail__preview__carousel__item__wrapper">
-                        <div class="product-detail__preview__carousel__item">
+            <div class="product-detail__preview__carousel col col--half">
+              <div class="product-detail__preview__carousel__inner" id="selected-product-carousel">
+                <div class="product-detail__preview__carousel__wrapper">
+                  <div class="swiper-container gallery-top">
+                    <div class="swiper-wrapper">
+                      <div class="swiper-slide">
+                        <div class="product-detail__preview__carousel__item__wrapper">
+                          <div class="product-detail__preview__carousel__item">
+                          </div>
+                        </div>
+                      </div>
+                      <div class="swiper-slide">
+                        <div class="product-detail__preview__carousel__item__wrapper">
+                          <div class="product-detail__preview__carousel__item">
+                          </div>
                         </div>
                       </div>
                     </div>
-                    <div class="swiper-slide">
-                      <div class="product-detail__preview__carousel__item__wrapper">
-                        <div class="product-detail__preview__carousel__item">
+                  </div>
+                  <div id="js-preview-carousel-next" class="swiper-button-next swiper-button-white"></div>
+                  <div id="js-preview-carousel-prev" class="swiper-button-prev swiper-button-white"></div>
+                </div>
+                <div class="product-detail__preview__carousel__wrapper">
+                  <div class="swiper-container gallery-thumbs">
+                    <div class="swiper-wrapper">
+                      <div class="swiper-slide">
+                        <div class="product-detail__preview__carousel__item__wrapper">
+                          <div class="product-detail__preview__carousel__item">
+                          </div>
+                        </div>
+                      </div>
+                      <div class="swiper-slide">
+                        <div class="product-detail__preview__carousel__item__wrapper">
+                          <div class="product-detail__preview__carousel__item">
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
-                <div id="js-preview-carousel-next" class="swiper-button-next swiper-button-white"></div>
-                <div id="js-preview-carousel-prev" class="swiper-button-prev swiper-button-white"></div>
               </div>
-              <div class="product-detail__preview__carousel__wrapper">
-                <div class="swiper-container gallery-thumbs">
-                  <div class="swiper-wrapper">
-                    <div class="swiper-slide">
-                      <div class="product-detail__preview__carousel__item__wrapper">
-                        <div class="product-detail__preview__carousel__item">
-                        </div>
-                      </div>
-                    </div>
-                    <div class="swiper-slide">
-                      <div class="product-detail__preview__carousel__item__wrapper">
-                        <div class="product-detail__preview__carousel__item">
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+              <div>
+                <div id="sizes"></div>
+                <div id="brands-prizes"></div>
               </div>
             </div>
             <div class="product-detail__preview__info col col--half" id="selected-product-info"></div>
@@ -224,6 +231,7 @@
               </div>
               <div id="js-gallery-carousel-next" class="swiper-button-next swiper-button-white"></div>
               <div id="js-gallery-carousel-prev" class="swiper-button-prev swiper-button-white"></div>
+              <div class="product-gallery__slide-info" id="selected-product-gallery-slide-info"></div>
             </div>
             <div class="product-gallery__wrapper">
               <div class="swiper-container gallery-thumbs">
@@ -267,8 +275,8 @@
     </div>
   </div>
   <script src="js/vendor.js?071020"></script>
-  <script src="data.js?250920"></script>
-  <script src="js/script.js?191020"></script>
+  <script src="data.js?251020"></script>
+  <script src="js/script.js?251020"></script>
 </body>
 
 </html>
