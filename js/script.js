@@ -10,9 +10,13 @@ var EVENTS = {
   PRODUCTS: {
     ITEM_ACTIVATED: 'product-activated',
   },
+  PRODUCT_SLIDE: {
+    SLIDE_CLICK: 'product-slide-click',
+  },
   COMPARISON: {
     FILTER_CHECKED: 'comparison-filtered-by-checked',
-  }
+    BODY_IMG_CLICK: 'comparison-body-img-click',
+  },
 };
 
 var PHOTO_LABELS = [
@@ -25,6 +29,15 @@ var PHOTO_LABELS = [
 var SIZE_IMG = {
   '35mmフルサイズ': 'https://d3cej1t8rg2izd.cloudfront.net/camera-lens-finder/img/full.png',
   'APS-C': 'https://d3cej1t8rg2izd.cloudfront.net/camera-lens-finder/img/aps-c.png',
+};
+
+var ANIMATIONS = {
+  FADE_IN: {
+    ENTER: 'fade-in-enter',
+    ENTER_ACTIVE: 'fade-in-enter-active',
+    LEAVE: 'fade-in-leave',
+    LEAVE_ACTIVE: 'fade-in-leave-active'
+  }
 };
 
 var COMPARISON_FILTER_KEYS = ['size'];
@@ -60,6 +73,43 @@ function Menu(bus, menuEl, menuToggleEl) {
 
   menuToggleEl.addEventListener('click', toggle);
   this.collapse = collapse;
+}
+// modal with close button, overlay
+function Modal(el, overlayEl, btnCloseEl, backdropEl) {
+  var isPending = false;
+  backdropEl.addEventListener('click', dismiss);
+  btnCloseEl.addEventListener('click', dismiss);
+  function show(data) {
+    if (isPending) {
+      return;
+    }
+    isPending = true;
+    el.src = data;
+    overlayEl.style.display = 'flex';
+    overlayEl.classList.add(ANIMATIONS.FADE_IN.ENTER);
+    overlayEl.classList.add(ANIMATIONS.FADE_IN.ENTER_ACTIVE);
+    overlayEl.classList.remove(ANIMATIONS.FADE_IN.ENTER);
+    setTimeout(function() {
+      overlayEl.classList.remove(ANIMATIONS.FADE_IN.ENTER_ACTIVE);
+      isPending = false;
+    }, 300);
+  }
+  function dismiss() {
+    if (isPending) {
+      return;
+    }
+    isPending = true;
+    overlayEl.classList.add(ANIMATIONS.FADE_IN.LEAVE);
+    overlayEl.classList.add(ANIMATIONS.FADE_IN.LEAVE_ACTIVE);
+    overlayEl.classList.remove(ANIMATIONS.FADE_IN.LEAVE);
+    setTimeout(function() {
+      overlayEl.classList.remove(ANIMATIONS.FADE_IN.LEAVE_ACTIVE);
+      overlayEl.style.display = 'none';
+      isPending = false;
+    }, 300);
+  }
+  this.show = show;
+  this.dismiss = dismiss;
 }
 // filters
 
@@ -661,6 +711,7 @@ function ProductSlide(bus, slideInfo, productSlideEl, productCommentEl, productS
   var topCarousel = null;
   var thumbsCarousel = null;
   var slideInfoKeys = [];
+  var slidesImg = [];
 
   function getSlideInfo(filename) {
     var info = {
@@ -683,6 +734,7 @@ function ProductSlide(bus, slideInfo, productSlideEl, productCommentEl, productS
     thumbsCarousel.removeAllSlides();
   }
   function renderGallery(productImg) {
+    slidesImg = productImg;
     productImg.forEach(function(img, index) {
       topCarousel.addSlide(index, template
         .replace(':SRC', img)
@@ -717,6 +769,9 @@ function ProductSlide(bus, slideInfo, productSlideEl, productCommentEl, productS
       on: {
         slideChangeTransitionEnd: function(el) {
           renderGallerySlideInfo(el.slides[el.activeIndex]);
+        },
+        click: function(el) {
+          bus.emitEvent(EVENTS.PRODUCT_SLIDE.SLIDE_CLICK, [slidesImg[el.activeIndex]]);
         },
       }
     });
@@ -836,6 +891,12 @@ function ProductComparison(bus, productComparisonEl, productComparisonBtnEl, pro
         var itemIndex = productEl.dataset.productIndex;
         var itemGroup = productEl.dataset.productGroup;
         productsByGroup[itemGroup][itemIndex].checked = target.checked;
+      }
+    });
+    productComparisonEl.addEventListener('click', function(event) {
+      var target = event.target;
+      if (target.classList.contains('product-compare__body__item__img')) {
+        bus.emitEvent(EVENTS.COMPARISON.BODY_IMG_CLICK, [target.getAttribute('src')]);
       }
     });
     productComparisonBtnEl.addEventListener('click', function() {
@@ -1016,6 +1077,17 @@ function ProductComparison(bus, productComparisonEl, productComparisonBtnEl, pro
 // script
 var bus = new EventEmitter();
 
+// modal
+var modal = new Modal(
+    document.getElementById('modal-img'),
+    document.getElementById('modal-overlay'),
+    document.getElementById('modal-btn-close'),
+    document.getElementById('modal-backdrop')
+);
+
+window.modalShow = modal.show;
+window.modalDismiss = modal.dismiss;
+
 // mobile menu
 var menu = new Menu(
     bus,
@@ -1121,6 +1193,12 @@ bus.addListener(EVENTS.FILTERS.SELECT_ALL, function() {
     menu.collapse();
     showProductSectionOverlay();
     productComparison.scroll();
+});
+bus.addListener(EVENTS.PRODUCT_SLIDE.SLIDE_CLICK, function(data) {
+    modal.show(data);
+});
+bus.addListener(EVENTS.COMPARISON.BODY_IMG_CLICK, function(data) {
+    modal.show(data);
 });
 
 productPreviewCarousel.init();

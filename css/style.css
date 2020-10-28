@@ -109,6 +109,87 @@ body {
   .swiper-button-lock {
     display: none; } }
 
+.modal__backdrop {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: -1; }
+
+.modal__overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 999;
+  background-color: rgba(0, 0, 0, 0.8); }
+
+.modal__btn-close, .modal__btn-close:hover, .modal__btn-close:focus {
+  outline: 0;
+  box-shadow: unset;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  background: transparent; }
+
+.modal__btn-close {
+  color: #cacaca;
+  position: absolute;
+  right: 100px;
+  top: 45px;
+  font-size: 32px;
+  display: flex;
+  align-items: center;
+  line-height: normal; }
+  .modal__btn-close span {
+    font-size: 50px;
+    line-height: 1; }
+  @media all and (max-width: 767px) {
+    .modal__btn-close {
+      bottom: 45px;
+      right: 50%;
+      top: unset;
+      transform: translateX(50%); } }
+
+.modal__img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-height: 100%;
+  max-width: 80%;
+  margin: auto; }
+  @media all and (max-width: 767px) {
+    .modal__img {
+      max-width: 90%; } }
+
+@-webkit-keyframes fade-in {
+  from {
+    opacity: 0; }
+  to {
+    opacity: 1; } }
+
+@keyframes fade-in {
+  from {
+    opacity: 0; }
+  to {
+    opacity: 1; } }
+
+.fade-in-enter {
+  opacity: 0; }
+  .fade-in-enter-active {
+    opacity: 1;
+    -webkit-animation: fade-in 0.3s ease-in-out;
+            animation: fade-in 0.3s ease-in-out; }
+
+.fade-in-leave {
+  opacity: 1; }
+  .fade-in-leave-active {
+    opacity: 0;
+    animation: fade-in 0.3s ease-in-out reverse; }
+
 .header {
   border-top: 1px solid #fff;
   margin-top: 20px;
@@ -915,7 +996,8 @@ body {
     .product-gallery__item img {
       display: block;
       max-width: 100%;
-      max-height: 100%; }
+      max-height: 100%;
+      flex-basis: 100%; }
     .product-gallery__item__wrapper {
       width: 100%;
       padding-top: 66.7%;
