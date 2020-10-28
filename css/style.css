@@ -815,13 +815,14 @@ body {
 
 .product-detail__grid {
   background-color: #fff;
-  overflow-y: auto;
-  overflow-x: visible;
+  padding: 5px;
+  overflow-y: scroll;
   height: 230px;
   flex-grow: 1; }
   @media all and (max-width: 767px) {
     .product-detail__grid {
-      overflow-x: auto;
+      overflow-y: auto;
+      overflow-x: scroll;
       height: 100px; } }
   .product-detail__grid__title {
     font-size: 26px;
