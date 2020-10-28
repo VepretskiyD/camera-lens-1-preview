@@ -138,8 +138,6 @@ body {
 .modal__btn-close {
   color: #cacaca;
   position: absolute;
-  right: 100px;
-  top: 45px;
   font-size: 32px;
   display: flex;
   align-items: center;
@@ -151,8 +149,11 @@ body {
     .modal__btn-close {
       bottom: 45px;
       right: 50%;
-      top: unset;
       transform: translateX(50%); } }
+  @media all and (min-width: 768px) {
+    .modal__btn-close {
+      right: 100px;
+      top: 45px; } }
 
 .modal__img {
   display: block;
