@@ -284,6 +284,7 @@ function ProductGrid(bus, productGridEl, productGridTitle, products) {
     grid = new Muuri(productGridEl, {
       layout: {
         horizontal: mql.matches,
+        rounding: true,
       }
     });
     window.grid = grid;
@@ -292,6 +293,7 @@ function ProductGrid(bus, productGridEl, productGridTitle, products) {
       grid = new Muuri(productGridEl, {
         layout: {
           horizontal: e.matches,
+          rounding: true,
         }
       });
     }

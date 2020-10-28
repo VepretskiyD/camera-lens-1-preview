@@ -815,7 +815,6 @@ body {
 
 .product-detail__grid {
   background-color: #fff;
-  padding: 5px;
   overflow-y: auto;
   overflow-x: visible;
   height: 230px;
