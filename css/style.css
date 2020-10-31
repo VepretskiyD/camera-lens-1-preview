@@ -125,7 +125,8 @@ body {
   left: 0;
   right: 0;
   z-index: 999;
-  background-color: rgba(0, 0, 0, 0.8); }
+  background-color: rgba(0, 0, 0, 0.8);
+  align-items: center; }
 
 .modal__btn-close, .modal__btn-close:hover, .modal__btn-close:focus {
   outline: 0;
@@ -141,7 +142,8 @@ body {
   font-size: 32px;
   display: flex;
   align-items: center;
-  line-height: normal; }
+  line-height: normal;
+  z-index: 1; }
   .modal__btn-close span {
     font-size: 50px;
     line-height: 1; }
@@ -160,11 +162,26 @@ body {
   width: auto;
   height: auto;
   max-height: 100%;
-  max-width: 80%;
-  margin: auto; }
-  @media all and (max-width: 767px) {
-    .modal__img {
-      max-width: 90%; } }
+  max-width: 100%;
+  margin: auto;
+  position: relative;
+  top: 50%;
+  transform: translateY(-50%); }
+  .modal__img__inner {
+    max-height: 100%;
+    max-width: 100%;
+    margin: auto;
+    display: block; }
+  .modal__img__wrapper {
+    width: 80%;
+    margin-left: 10%;
+    display: flex;
+    flex-direction: column;
+    height: 100%; }
+    @media all and (max-width: 767px) {
+      .modal__img__wrapper {
+        width: 90%;
+        margin-left: 5%; } }
 
 @-webkit-keyframes fade-in {
   from {
