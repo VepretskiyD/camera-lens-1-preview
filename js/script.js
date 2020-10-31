@@ -77,6 +77,11 @@ function Menu(bus, menuEl, menuToggleEl) {
 // modal with close button, overlay
 function Modal(el, overlayEl, btnCloseEl, backdropEl) {
   var isPending = false;
+  overlayEl.addEventListener('click', function(event) {
+    if (!event.target.classList.contains('modal__img')) {
+      dismiss();
+    }
+  });
   backdropEl.addEventListener('click', dismiss);
   btnCloseEl.addEventListener('click', dismiss);
   function show(data) {
