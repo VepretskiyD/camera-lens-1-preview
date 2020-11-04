@@ -16,6 +16,7 @@ var EVENTS = {
   COMPARISON: {
     FILTER_CHECKED: 'comparison-filtered-by-checked',
     BODY_IMG_CLICK: 'comparison-body-img-click',
+    PRODUCT_IMG_CLICK: 'comparison-product-img-click',
   },
 };
 
@@ -430,10 +431,18 @@ function ProductGrid(bus, productGridEl, productGridTitle, products) {
     }
   }
 
-  function activateItem(index) {
+  function activateByIndex(index) {
     var item = productGridEl.querySelector('[data-index="' + index + '"] .product-detail__grid__item');
     deactivateItems();
     item.classList.add('product-detail__grid__item--active');
+  }
+
+  this.highlightItem = function(index) {
+    activateByIndex(index);
+  }
+
+  function activateItem(index) {
+    activateByIndex(index);
     bus.emitEvent(EVENTS.PRODUCTS.ITEM_ACTIVATED, [products[index]]);
   }
 
@@ -845,12 +854,16 @@ function ProductComparison(bus, productComparisonEl, productComparisonBtnEl, pro
                 '<div class="product-compare__header__label__inner">:GROUP</div>' +
               '</div>',
       item: '<div class="product-compare__header__item" data-header-item data-product-group=":GROUP" data-product-index=":INDEX">' +
-              '<label class="product-compare__header__item__label">' +
-                '<input type="checkbox" class="product-compare__header__item__checkbox">' +
+              '<div class="product-compare__header__item__label">' +
+                '<div class="product-compare__header__item__checkbox">' +
+                  '<input class="product-compare__header__item__checkbox__input" type="checkbox" id=":ID">' +
+                  '<label class="product-compare__header__item__checkbox__label" for=":ID">&check;</label>' +
+                '</div>' +
+                '<div class="product-compare__header__item__group">:GROUP</div>' +
                 '<img src=":SRC" class="product-compare__header__item__product-img">' +
                 '<p class="product-compare__header__item__product-name">:NAME</p>' +
                 '<p class="product-compare__header__item__product-price">:PRICE</p>' +
-              '</label>' +
+              '</div>' +
             '</div>',
     },
     body: {
@@ -870,6 +883,28 @@ function ProductComparison(bus, productComparisonEl, productComparisonBtnEl, pro
 
   function init() {
     var groupKeys = Object.keys(productsByGroup);
+    // checked header
+    var checkedHeaderLabelHTML = templates.header.label.replace(':GROUP', 'Checked');
+    var checkedHeaderHTML = templates.header.wrapper
+      .replace(':GROUP', '')
+      .replace(':LABEL', checkedHeaderLabelHTML)
+      .replace(':ITEMS', '');
+    var bodyRowsHTML = '';
+    PHOTO_LABELS.forEach(function(label, labelIndex) {
+      var rowLabel = templates.body.rowLabel.replace(':LABEL', label);
+      bodyRowsHTML += templates.body.row
+        .replace(':LABEL', rowLabel)
+        .replace(':ITEMS', '');
+    });
+    var checkedBodyHTML = templates.body.wrapper
+      .replace(':GROUP', '')
+      .replace(':ROWS', bodyRowsHTML);
+    var checkedColHTML = templates.col
+      .replace(':GROUP', 'checked')
+      .replace(':HEADER', checkedHeaderHTML)
+      .replace(':BODY', checkedBodyHTML);
+    productComparisonEl.insertAdjacentHTML('beforeend', checkedColHTML);
+    // end of checked header
     groupKeys.forEach(function(key) {
       var headerHTML = renderHeader(key, productsByGroup[key]);
       var bodyHTML = renderBody(key, productsByGroup[key]);
@@ -903,6 +938,14 @@ function ProductComparison(bus, productComparisonEl, productComparisonBtnEl, pro
       if (target.classList.contains('product-compare__body__item__img')) {
         bus.emitEvent(EVENTS.COMPARISON.BODY_IMG_CLICK, [target.getAttribute('src')]);
       }
+      if (target.classList.contains('product-compare__header__item__product-img')) {
+        var productEl = target.closest('[data-product-index][data-product-group]');
+        var itemIndex = productEl.dataset.productIndex;
+        var itemGroup = productEl.dataset.productGroup;
+        var item = productsByGroup[itemGroup][itemIndex];
+        highlightActive(item.data);
+        bus.emitEvent(EVENTS.COMPARISON.PRODUCT_IMG_CLICK, [{ data: item.data, index: item.index }]);
+      }
     });
     productComparisonBtnEl.addEventListener('click', function() {
       filterChecked();
@@ -916,7 +959,8 @@ function ProductComparison(bus, productComparisonEl, productComparisonBtnEl, pro
     groupProducts.forEach(function(product, index) {
       headerItemsHTML += templates.header.item
         .replace(':INDEX', index)
-        .replace(':GROUP', product.data.group)
+        .replace(/:ID/g, groupName + '-' + index)
+        .replace(/:GROUP/g, product.data.group)
         .replace(':SRC', product.data.image_url)
         .replace(':NAME', product.data.MPN)
         .replace(':PRICE', '$' + product.data.price / 100);
@@ -1021,6 +1065,7 @@ function ProductComparison(bus, productComparisonEl, productComparisonBtnEl, pro
       });
     });
     toggleGroups();
+    productComparisonEl.classList.add('product-compare--checked-only');
   }
 
   function filterBy(filtersData) {
@@ -1065,6 +1110,7 @@ function ProductComparison(bus, productComparisonEl, productComparisonBtnEl, pro
       });
     });
     toggleGroups();
+    productComparisonEl.classList.remove('product-compare--checked-only');
   }
 
   function scroll() {
@@ -1176,34 +1222,47 @@ bus.addListener(EVENTS.FILTERS.CHANGED, function(data) {
     });
     productComparison.filterBy(comparisonFilterData);
 });
-bus.addListener(EVENTS.FILTERS.CLEARED, function() {
+function resetComparison() {
     productComparison.reset();
+}
+bus.addListener(EVENTS.FILTERS.CLEARED, function() {
+    resetComparison();
 });
 bus.addListener(EVENTS.FILTERS.RESTORED, function() {
-    productComparison.reset();
+    resetComparison();
 });
 bus.addListener(EVENTS.COMPARISON.FILTER_CHECKED, function(data) {
     hideProductSectionOverlay();
     filter.showBackFilterOverlay();
     productGrid.matchComparison(data);
 });
-bus.addListener(EVENTS.PRODUCTS.ITEM_ACTIVATED, function(data) {
+function renderPreview(data) {
     hideProductSectionOverlay();
     productPreviewCarousel.renderPreview(data);
     productPreviewInfo.renderPreview(data);
     productSlide.renderGallery(data);
+}
+bus.addListener(EVENTS.PRODUCTS.ITEM_ACTIVATED, function(data) {
+    renderPreview(data);
     productComparison.highlightActive(data);
+});
+bus.addListener(EVENTS.COMPARISON.PRODUCT_IMG_CLICK, function(data) {
+    renderPreview(data.data);
+    productGrid.highlightItem(data.index);
 });
 bus.addListener(EVENTS.FILTERS.SELECT_ALL, function() {
     menu.collapse();
     showProductSectionOverlay();
     productComparison.scroll();
 });
-bus.addListener(EVENTS.PRODUCT_SLIDE.SLIDE_CLICK, function(data) {
+function modalShow(data) {
     modal.show(data);
+}
+bus.addListener(EVENTS.PRODUCT_SLIDE.SLIDE_CLICK, function(data) {
+    modalShow(data);
 });
 bus.addListener(EVENTS.COMPARISON.BODY_IMG_CLICK, function(data) {
-    modal.show(data);
+    modalShow(data);
 });
 
 productPreviewCarousel.init();
