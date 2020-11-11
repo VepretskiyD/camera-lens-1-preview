@@ -1090,19 +1090,12 @@ body {
 .product-compare {
   overflow: auto;
   max-height: 500px;
-  display: grid; }
-  @media all and (max-width: 767px) {
-    .product-compare {
-      max-height: auto; } }
+  display: none; }
+  .product-compare--visible {
+    display: block;
+    display: grid; }
   .product-compare--checked-only {
-    flex-direction: row;
-    max-height: unset;
-    display: flex; }
-    .product-compare--checked-only .product-compare__col[data-section-product-group="checked"] {
-      display: flex; }
-    .product-compare--checked-only .product-compare__col:not([data-section-product-group="checked"]) .product-compare__header__label,
-    .product-compare--checked-only .product-compare__col:not([data-section-product-group="checked"]) .product-compare__body__label {
-      display: none; }
+    max-height: 700px; }
     .product-compare--checked-only .product-compare__active-group {
       order: 0; }
     .product-compare--checked-only .product-compare__header__item__checkbox {
@@ -1111,25 +1104,23 @@ body {
       display: flex; }
     .product-compare--checked-only .product-compare__header {
       margin-top: 70px; }
-  .product-compare__col[data-section-product-group="checked"] {
-    display: none;
-    flex-direction: column;
-    order: -2;
-    position: -webkit-sticky;
-    position: sticky;
-    left: 0;
-    z-index: 1;
-    background-color: #000; }
-    @media all and (max-width: 767px) {
-      .product-compare__col[data-section-product-group="checked"] .product-compare__header__label__inner {
-        font-size: 16px; } }
-    .product-compare__col[data-section-product-group="checked"] .product-compare__header__label {
-      height: 94px; }
-    .product-compare__col[data-section-product-group="checked"] .product-compare__body {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-around;
-      flex-grow: 1; }
+      .product-compare--checked-only .product-compare__header__label:before {
+        top: -70px;
+        height: 70px; }
+      @media all and (max-width: 767px) {
+        .product-compare--checked-only .product-compare__header__label__inner {
+          font-size: 16px; } }
+    .product-compare--checked-only .product-compare__body {
+      display: flex; }
+      .product-compare--checked-only .product-compare__body__row {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around; }
+        .product-compare--checked-only .product-compare__body__row--labels {
+          position: -webkit-sticky;
+          position: sticky;
+          left: 0;
+          background-color: #000; }
   .product-compare__active-group {
     order: -1; }
   .product-compare__heading {

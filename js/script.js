@@ -42,6 +42,7 @@ var ANIMATIONS = {
 };
 
 var COMPARISON_FILTER_KEYS = ['size'];
+
 // mobile menu
 function Menu(bus, menuEl, menuToggleEl) {
   var isExpanded = false;
@@ -814,6 +815,20 @@ function ProductSlide(bus, slideInfo, productSlideEl, productCommentEl, productS
 function ProductComparison(bus, productComparisonEl, productComparisonBtnEl, products) {
   var checkedProducts = [];
   var productsByGroup = {};
+  this._isVisible = false;
+  this.show = function() {
+    if (!this._isVisible) {
+      this._isVisible = true;
+      productComparisonEl.classList.add('product-compare--visible');
+    }
+  }
+  this.hide = function() {
+    if (this._isVisible) {
+      this._isVisible = false;
+      productComparisonEl.classList.remove('product-compare--visible');
+    }
+  }
+  var self = this;
   var productsGroups = products
     .map(function(product) {
       return product.group;
@@ -825,15 +840,19 @@ function ProductComparison(bus, productComparisonEl, productComparisonBtnEl, pro
   productsGroups.forEach(function(group) {
     productsByGroup[group] = [];
   });
+  var productsCols = [];
   products.forEach(function(product, index) {
-    productsByGroup[product.group].push({
+    var item = {
       data: product,
       el: null,
       input: null,
       checked: false,
       visible: true,
-      index: index
-    });
+      index: index,
+      group: product.group
+    };
+    productsByGroup[product.group].push(item);
+    productsCols.push(item);
   });
 
   var templates = {
@@ -883,28 +902,6 @@ function ProductComparison(bus, productComparisonEl, productComparisonBtnEl, pro
 
   function init() {
     var groupKeys = Object.keys(productsByGroup);
-    // checked header
-    var checkedHeaderLabelHTML = templates.header.label.replace(':GROUP', 'Checked');
-    var checkedHeaderHTML = templates.header.wrapper
-      .replace(':GROUP', '')
-      .replace(':LABEL', checkedHeaderLabelHTML)
-      .replace(':ITEMS', '');
-    var bodyRowsHTML = '';
-    PHOTO_LABELS.forEach(function(label, labelIndex) {
-      var rowLabel = templates.body.rowLabel.replace(':LABEL', label);
-      bodyRowsHTML += templates.body.row
-        .replace(':LABEL', rowLabel)
-        .replace(':ITEMS', '');
-    });
-    var checkedBodyHTML = templates.body.wrapper
-      .replace(':GROUP', '')
-      .replace(':ROWS', bodyRowsHTML);
-    var checkedColHTML = templates.col
-      .replace(':GROUP', 'checked')
-      .replace(':HEADER', checkedHeaderHTML)
-      .replace(':BODY', checkedBodyHTML);
-    productComparisonEl.insertAdjacentHTML('beforeend', checkedColHTML);
-    // end of checked header
     groupKeys.forEach(function(key) {
       var headerHTML = renderHeader(key, productsByGroup[key]);
       var bodyHTML = renderBody(key, productsByGroup[key]);
@@ -917,22 +914,28 @@ function ProductComparison(bus, productComparisonEl, productComparisonBtnEl, pro
     var itemsEl = productComparisonEl.querySelectorAll('[data-header-item][data-product-index][data-product-group]');
     Array.prototype.forEach.call(itemsEl, function(item) {
       var itemIndex = item.dataset.productIndex;
-      var itemGroup = item.dataset.productGroup;
       var itemCheckbox = item.querySelector('input[type="checkbox"]');
-      var productObj = productsByGroup[itemGroup][itemIndex];
+      var index = productsCols.findIndex(function(product) {
+        return product.index == itemIndex;
+      });
+      var productObj = productsCols[index];
       productObj.el = item;
       productObj.input = itemCheckbox;
       productObj.checked = itemCheckbox.checked;
     });
+
     productComparisonEl.addEventListener('change', function(e) {
       var target = e.target;
       var productEl = target.closest('[data-product-index][data-product-group]');
       if (productEl) {
         var itemIndex = productEl.dataset.productIndex;
-        var itemGroup = productEl.dataset.productGroup;
-        productsByGroup[itemGroup][itemIndex].checked = target.checked;
+        var index = productsCols.findIndex(function(product) {
+          return product.index == itemIndex;
+        });
+        productsCols[index].checked = target.checked;
       }
     });
+
     productComparisonEl.addEventListener('click', function(event) {
       var target = event.target;
       if (target.classList.contains('product-compare__body__item__img')) {
@@ -941,25 +944,30 @@ function ProductComparison(bus, productComparisonEl, productComparisonBtnEl, pro
       if (target.classList.contains('product-compare__header__item__product-img')) {
         var productEl = target.closest('[data-product-index][data-product-group]');
         var itemIndex = productEl.dataset.productIndex;
-        var itemGroup = productEl.dataset.productGroup;
-        var item = productsByGroup[itemGroup][itemIndex];
-        highlightActive(item.data);
+        var index = productsCols.findIndex(function(product) {
+          return product.index == itemIndex;
+        });
+        var item = productsCols[index];
         bus.emitEvent(EVENTS.COMPARISON.PRODUCT_IMG_CLICK, [{ data: item.data, index: item.index }]);
       }
     });
-    productComparisonBtnEl.addEventListener('click', function() {
-      filterChecked();
-      bus.emitEvent(EVENTS.COMPARISON.FILTER_CHECKED, [checkedProducts]);
-    });
+
+    function clickHandler() {
+      if (self._isVisible) {
+        bus.emitEvent(EVENTS.COMPARISON.FILTER_CHECKED, [getChecked(), true]);
+      }
+      self.hide();
+    }
+    productComparisonBtnEl.addEventListener('click', clickHandler);
   }
 
   function renderHeader(groupName, groupProducts) {
     var headerLabelHTML = templates.header.label.replace(':GROUP', groupName);
     var headerItemsHTML = '';
-    groupProducts.forEach(function(product, index) {
+    groupProducts.forEach(function(product) {
       headerItemsHTML += templates.header.item
-        .replace(':INDEX', index)
-        .replace(/:ID/g, groupName + '-' + index)
+        .replace(':INDEX', product.index)
+        .replace(/:ID/g, groupName + '-' + product.index)
         .replace(/:GROUP/g, product.data.group)
         .replace(':SRC', product.data.image_url)
         .replace(':NAME', product.data.MPN)
@@ -976,9 +984,9 @@ function ProductComparison(bus, productComparisonEl, productComparisonBtnEl, pro
     var bodyRowsHTML = '';
     PHOTO_LABELS.forEach(function(label, labelIndex) {
       var rowItems = '';
-      groupProducts.forEach(function(product, index) {
+      groupProducts.forEach(function(product) {
         rowItems += templates.body.rowItem
-          .replace(':INDEX', index)
+          .replace(':INDEX', product.index)
           .replace(':GROUP', product.data.group)
           .replace(':SRC', product.data.cells_src[labelIndex]);
       });
@@ -996,7 +1004,7 @@ function ProductComparison(bus, productComparisonEl, productComparisonBtnEl, pro
   var activeProduct = null;
 
   function highlightActive(data) {
-    var activeProductIndex = productsByGroup[data.group].findIndex(function(product) {
+    var activeProductIndex = productsCols.findIndex(function(product) {
       return product.data === data;
     });
     if (activeProductIndex !== -1) {
@@ -1009,7 +1017,7 @@ function ProductComparison(bus, productComparisonEl, productComparisonBtnEl, pro
         );
         activeProduct.classList.remove('product-compare__header__item--active');
       }
-      activeProduct = productsByGroup[data.group][activeProductIndex].el;
+      activeProduct = productsCols[activeProductIndex].el;
       Array.prototype.forEach.call(
         productComparisonEl.querySelectorAll('[data-section-product-group="' + data.group + '"]'),
         function(el) {
@@ -1026,7 +1034,7 @@ function ProductComparison(bus, productComparisonEl, productComparisonBtnEl, pro
     Array.prototype.forEach.call(itemsToShow, function(item) {
       item.style.display = '';
     });
-    productsByGroup[key][index].visible = true;
+    productsCols[index].visible = true;
   }
 
   function hideItems(key, index) {
@@ -1035,15 +1043,15 @@ function ProductComparison(bus, productComparisonEl, productComparisonBtnEl, pro
     Array.prototype.forEach.call(itemsToHide, function(item) {
       item.style.display = 'none';
     });
-    productsByGroup[key][index].visible = false;
+    productsCols[index].visible = false;
   }
 
   function toggleGroups() {
     var groupKeys = Object.keys(productsByGroup);
     groupKeys.forEach(function(key) {
-      var groupVisible = productsByGroup[key]
+      var groupVisible = productsCols
         .filter(function(item) {
-          return item.visible;
+          return item.group === key && item.visible;
         })
         .length;
       var groupEl = productComparisonEl
@@ -1052,45 +1060,34 @@ function ProductComparison(bus, productComparisonEl, productComparisonBtnEl, pro
     });
   }
 
-  function filterChecked() {
+  function getChecked() {
     checkedProducts = [];
-    var groupKeys = Object.keys(productsByGroup);
-    groupKeys.forEach(function(key) {
-      productsByGroup[key].forEach(function(product, index) {
-        if (!product.checked) {
-          hideItems(key, index);
-        } else {
-          checkedProducts.push(product.index);
-        }
-      });
+    productsCols.forEach(function(product) {
+      if (product.checked) {
+        checkedProducts.push(product.index);
+      }
     });
-    toggleGroups();
-    productComparisonEl.classList.add('product-compare--checked-only');
+    return checkedProducts;
   }
 
   function filterBy(filtersData) {
     var filterKeys = Object.keys(filtersData);
-    var groupKeys = Object.keys(productsByGroup);
     if (filterKeys.length) {
       filterKeys.forEach(function(filterKey) {
-        groupKeys.forEach(function(key) {
-          productsByGroup[key].forEach(function(product, index) {
-            if (product.data.hasOwnProperty(filterKey)
-              && filtersData[filterKey].includes(product.data[filterKey])) {
-              showItems(key, index);
+        productsCols.forEach(function(product) {
+          if (product.data.hasOwnProperty(filterKey)
+            && filtersData[filterKey].includes(product.data[filterKey])) {
+              showItems(product.group, product.index);
             } else {
-              hideItems(key, index);
+              hideItems(product.group, product.index);
               product.input.checked = false;
               product.checked = false;
             }
-          });
         });
       });
     } else {
-      groupKeys.forEach(function(key) {
-        productsByGroup[key].forEach(function(product, index) {
-          showItems(key, index);
-        });
+      productsCols.forEach(function(product) {
+        showItems(product.group, product.index);
       });
     }
     toggleGroups();
@@ -1098,19 +1095,15 @@ function ProductComparison(bus, productComparisonEl, productComparisonBtnEl, pro
   }
 
   function reset() {
-    var groupKeys = Object.keys(productsByGroup);
-    groupKeys.forEach(function(key) {
-      productsByGroup[key].forEach(function(product, index) {
-        if (!product.checked) {
-          showItems(key, index);
-        } else {
-          product.input.checked = false;
-          product.checked = false;
-        }
-      });
+    productsCols.forEach(function(product) {
+      if (!product.checked) {
+        showItems(product.group, product.index);
+      } else {
+        product.input.checked = false;
+        product.checked = false;
+      }
     });
     toggleGroups();
-    productComparisonEl.classList.remove('product-compare--checked-only');
   }
 
   function scroll() {
@@ -1124,6 +1117,298 @@ function ProductComparison(bus, productComparisonEl, productComparisonBtnEl, pro
   this.highlightActive = highlightActive;
   this.scroll = scroll;
   this.filterBy = filterBy;
+}
+// product comparison checked
+function ProductComparisonChecked(bus, productComparisonEl, productComparisonBtnEl, products) {
+  var checkedProducts = [];
+  this._isVisible = false;
+  this.show = function() {
+    if (!this._isVisible) {
+      this._isVisible = true;
+      productComparisonEl.classList.add('product-compare--visible');
+    }
+  }
+  this.hide = function() {
+    if (this._isVisible) {
+      this._isVisible = false;
+      productComparisonEl.classList.remove('product-compare--visible');
+    }
+  }
+  var self = this;
+  var productsCols = [];
+  products.forEach(function(product, index) {
+    var item = {
+      data: product,
+      el: null,
+      input: null,
+      checked: false,
+      visible: true,
+      index: index,
+      group: product.group
+    };
+    productsCols.push(item);
+  });
+
+  productsCols.sort(function(productA, productB) {
+    return productA.data.price - productB.data.price;
+  });
+
+  var templates = {
+    header: {
+      wrapper: '<div class="product-compare__header">' +
+                  '<div class="product-compare__header__row__wrapper">' +
+                    ':LABEL' +
+                    '<div class="product-compare__header__row">' +
+                      ':ITEMS' +
+                    '</div>' +
+                  '</div>' +
+                '</div>',
+      label: '<div class="product-compare__header__label">' +
+                '<div class="product-compare__header__label__inner">:GROUP</div>' +
+              '</div>',
+      item: '<div class="product-compare__header__item" data-header-item data-product-group=":GROUP" data-product-index=":INDEX">' +
+              '<div class="product-compare__header__item__label">' +
+                '<div class="product-compare__header__item__checkbox">' +
+                  '<input class="product-compare__header__item__checkbox__input" type="checkbox" id=":ID">' +
+                  '<label class="product-compare__header__item__checkbox__label" for=":ID">&check;</label>' +
+                '</div>' +
+                '<div class="product-compare__header__item__group">:GROUP</div>' +
+                '<img src=":SRC" class="product-compare__header__item__product-img">' +
+                '<p class="product-compare__header__item__product-name">:NAME</p>' +
+                '<p class="product-compare__header__item__product-price">:PRICE</p>' +
+              '</div>' +
+            '</div>',
+    },
+    body: {
+      wrapper: '<div class="product-compare__body">:ROWS</div>',
+      row: '<div class="product-compare__body__row" data-product-group=":GROUP" data-product-index=":INDEX">' +
+              ':ITEMS' +
+            '</div>',
+      labelsRow: '<div class="product-compare__body__row product-compare__body__row--labels">' +
+              ':ITEMS' +
+            '</div>',
+      rowLabel: '<div class="product-compare__body__label">:LABEL</div>',
+      rowItem: '<div class="product-compare__body__item">' +
+                  '<img src=":SRC" class="product-compare__body__item__img">' +
+                '</div>',
+    }
+  };
+  function init() {
+    var bodyRowsHTML = '';
+    bodyRowsHTML += renderCheckedBody();
+    productsCols.forEach(function(product) {
+      bodyRowsHTML += renderBody(product);
+    });
+    var bodyHTML = templates.body.wrapper
+      .replace(':ROWS', bodyRowsHTML);
+    
+    productComparisonEl.insertAdjacentHTML('beforeend', renderHeader());
+    productComparisonEl.insertAdjacentHTML('beforeend', bodyHTML);
+
+    var itemsEl = productComparisonEl.querySelectorAll('[data-header-item][data-product-index][data-product-group]');
+    Array.prototype.forEach.call(itemsEl, function(item) {
+      var itemIndex = item.dataset.productIndex;
+      var itemCheckbox = item.querySelector('input[type="checkbox"]');
+      var index = productsCols.findIndex(function(product) {
+        return product.index == itemIndex;
+      });
+      var productObj = productsCols[index];
+      productObj.el = item;
+      productObj.input = itemCheckbox;
+      productObj.checked = itemCheckbox.checked;
+    });
+
+    productComparisonEl.addEventListener('change', function(e) {
+      var target = e.target;
+      var productEl = target.closest('[data-product-index][data-product-group]');
+      if (productEl) {
+        var itemIndex = productEl.dataset.productIndex;
+        var index = productsCols.findIndex(function(product) {
+          return product.index == itemIndex;
+        });
+        productsCols[index].checked = target.checked;
+      }
+    });
+
+    productComparisonEl.addEventListener('click', function(event) {
+      var target = event.target;
+      if (target.classList.contains('product-compare__body__item__img')) {
+        bus.emitEvent(EVENTS.COMPARISON.BODY_IMG_CLICK, [target.getAttribute('src')]);
+      }
+      if (target.classList.contains('product-compare__header__item__product-img')) {
+        var productEl = target.closest('[data-product-index][data-product-group]');
+        var itemIndex = productEl.dataset.productIndex;
+        var index = productsCols.findIndex(function(product) {
+          return product.index == itemIndex;
+        });
+        var item = productsCols[index];
+        bus.emitEvent(EVENTS.COMPARISON.PRODUCT_IMG_CLICK, [{ data: item.data, index: item.index }]);
+      }
+    });
+
+    function clickHandler() {
+      if (self._isVisible) {
+        bus.emitEvent(EVENTS.COMPARISON.FILTER_CHECKED, [getChecked(), false]);
+        filterChecked();
+      }
+      self.show();
+    }
+    productComparisonBtnEl.addEventListener('click', clickHandler);
+  }
+
+  function renderHeader() {
+    var headerLabelHTML = templates.header.label.replace(':GROUP', 'Checked');
+    var headerItemsHTML = '';
+    productsCols.forEach(function(product) {
+      headerItemsHTML += templates.header.item
+        .replace(':INDEX', product.index)
+        .replace(/:ID/g, 'checked' + product.group + '-' + product.index)
+        .replace(/:GROUP/g, product.data.group)
+        .replace(':SRC', product.data.image_url)
+        .replace(':NAME', product.data.MPN)
+        .replace(':PRICE', '$' + product.data.price / 100);
+    });
+    var headerHTML = templates.header.wrapper
+      .replace(':LABEL', headerLabelHTML)
+      .replace(':ITEMS', headerItemsHTML)
+    return headerHTML;
+  }
+
+  function renderCheckedBody() {
+    var rowItemsHTML = '';
+    PHOTO_LABELS.forEach(function(label) {
+      rowItemsHTML += templates.body.rowLabel.replace(':LABEL', label);
+    });
+    return templates.body.labelsRow
+      .replace(':ITEMS', rowItemsHTML);
+  }
+
+  function renderBody(product) {
+    var rowItemsHTML = '';
+    PHOTO_LABELS.forEach(function(label, labelIndex) {
+      rowItemsHTML += templates.body.rowItem
+        .replace(':SRC', product.data.cells_src[labelIndex]);
+    });
+    return templates.body.row
+      .replace(':INDEX', product.index)
+      .replace(':GROUP', product.group)
+      .replace(':ITEMS', rowItemsHTML);
+  }
+
+  var activeProduct = null;
+
+  function highlightActive(data) {
+    var activeProductIndex = productsCols.findIndex(function(product) {
+      return product.data === data;
+    });
+    if (activeProductIndex !== -1) {
+      if (activeProduct !== null) {
+        activeProduct.classList.remove('product-compare__header__item--active');
+      }
+      activeProduct = productsCols[activeProductIndex].el;
+      activeProduct.classList.add('product-compare__header__item--active');
+    }
+  }
+
+  function showItems(key, index) {
+    var itemsToShow = productComparisonEl
+      .querySelectorAll('[data-product-group="' + key + '"][data-product-index="' + index + '"]');
+    Array.prototype.forEach.call(itemsToShow, function(item) {
+      item.style.display = '';
+    });
+    productsCols[index].visible = true;
+  }
+
+  function hideItems(key, index) {
+    var itemsToHide = productComparisonEl
+      .querySelectorAll('[data-product-group="' + key + '"][data-product-index="' + index + '"]');
+    Array.prototype.forEach.call(itemsToHide, function(item) {
+      item.style.display = 'none';
+    });
+    productsCols[index].visible = false;
+  }
+
+  function getChecked() {
+    checkedProducts = [];
+    productsCols.forEach(function(product) {
+      if (product.checked) {
+        checkedProducts.push(product.index);
+      }
+    });
+    return checkedProducts;
+  }
+
+  function filterChecked() {
+    checkedProducts = [];
+    productsCols.forEach(function(product) {
+      if (!product.checked) {
+        hideItems(product.group, product.index);
+      } else {
+        checkedProducts.push(product.index);
+      }
+    });
+  }
+
+  function filterBy(filtersData) {
+    var filterKeys = Object.keys(filtersData);
+    if (filterKeys.length) {
+      filterKeys.forEach(function(filterKey) {
+        productsCols.forEach(function(product) {
+          if (product.data.hasOwnProperty(filterKey)
+            && filtersData[filterKey].includes(product.data[filterKey])) {
+              showItems(product.group, product.index);
+            } else {
+              hideItems(product.group, product.index);
+              product.input.checked = false;
+              product.checked = false;
+            }
+        });
+      });
+    } else {
+      productsCols.forEach(function(product) {
+        showItems(product.group, product.index);
+      });
+    }
+  }
+
+  function setChecked(checkedItems) {
+    productsCols.forEach(function(product) {
+      if (checkedItems.indexOf(product.index) !== -1) {
+        product.input.checked = true;
+        product.checked = true;
+        showItems(product.group, product.index);
+      } else {
+        product.input.checked = false;
+        product.checked = false;
+        hideItems(product.group, product.index);
+      }
+    });
+    return getChecked();
+  }
+
+  function reset() {
+    productsCols.forEach(function(product) {
+      if (!product.checked) {
+        showItems(product.group, product.index);
+      } else {
+        product.input.checked = false;
+        product.checked = false;
+      }
+    });
+  }
+
+  function scroll() {
+    productComparisonEl
+      .closest('.product-compare__wrapper')
+      .scrollIntoView({ block: 'start', behavior: 'smooth' });
+  }
+
+  this.reset = reset;
+  this.init = init;
+  this.highlightActive = highlightActive;
+  this.scroll = scroll;
+  this.filterBy = filterBy;
+  this.setChecked = setChecked;
 }
 // script
 var bus = new EventEmitter();
@@ -1193,6 +1478,15 @@ var productComparison = new ProductComparison(
     document.getElementById('product-compare-show-checked-btn'),
     products
 );
+var productComparisonChecked = new ProductComparisonChecked(
+    bus,
+    document.getElementById('product-comparison-checked'),
+    document.getElementById('product-compare-show-checked-btn'),
+    products
+);
+
+productComparison.show();
+productComparisonChecked.hide();
 
 var productSection = document.getElementById('product-section');
 var productSectionOverlay = false;
@@ -1221,9 +1515,12 @@ bus.addListener(EVENTS.FILTERS.CHANGED, function(data) {
         }
     });
     productComparison.filterBy(comparisonFilterData);
+    productComparisonChecked.filterBy(comparisonFilterData);
 });
 function resetComparison() {
     productComparison.reset();
+    productComparison.show();
+    productComparisonChecked.hide();
 }
 bus.addListener(EVENTS.FILTERS.CLEARED, function() {
     resetComparison();
@@ -1231,10 +1528,14 @@ bus.addListener(EVENTS.FILTERS.CLEARED, function() {
 bus.addListener(EVENTS.FILTERS.RESTORED, function() {
     resetComparison();
 });
-bus.addListener(EVENTS.COMPARISON.FILTER_CHECKED, function(data) {
+bus.addListener(EVENTS.COMPARISON.FILTER_CHECKED, function(data, setChecked) {
     hideProductSectionOverlay();
     filter.showBackFilterOverlay();
-    productGrid.matchComparison(data);
+    if (setChecked) {
+        productGrid.matchComparison(productComparisonChecked.setChecked(data));
+    } else {
+        productGrid.matchComparison(data);
+    }
 });
 function renderPreview(data) {
     hideProductSectionOverlay();
@@ -1245,10 +1546,13 @@ function renderPreview(data) {
 bus.addListener(EVENTS.PRODUCTS.ITEM_ACTIVATED, function(data) {
     renderPreview(data);
     productComparison.highlightActive(data);
+    productComparisonChecked.highlightActive(data);
 });
 bus.addListener(EVENTS.COMPARISON.PRODUCT_IMG_CLICK, function(data) {
     renderPreview(data.data);
     productGrid.highlightItem(data.index);
+    productComparison.highlightActive(data.data);
+    productComparisonChecked.highlightActive(data.data);
 });
 bus.addListener(EVENTS.FILTERS.SELECT_ALL, function() {
     menu.collapse();
@@ -1268,4 +1572,5 @@ bus.addListener(EVENTS.COMPARISON.BODY_IMG_CLICK, function(data) {
 productPreviewCarousel.init();
 productSlide.init();
 productComparison.init();
+productComparisonChecked.init();
 productGrid.init();
