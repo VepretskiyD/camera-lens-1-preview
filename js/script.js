@@ -1574,3 +1574,7 @@ productSlide.init();
 productComparison.init();
 productComparisonChecked.init();
 productGrid.init();
+
+window.addEventListener('beforeunload', function() {
+    productComparison.reset();
+});
