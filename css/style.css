@@ -246,7 +246,32 @@ body {
   background-color: #7a7172; }
   @media all and (max-width: 767px) {
     .filter {
-      padding: 10px; } }
+      padding: 10px; }
+      .filter--lens-type {
+        flex-direction: column; }
+        .filter--lens-type .filter__col {
+          border-right: 0 !important;
+          width: 100%; }
+        .filter--lens-type .filter__section__input__btn {
+          align-items: center; }
+        .filter--lens-type [data-section="camera"] .filter__section__input__group {
+          flex-direction: row;
+          justify-content: center; }
+          .filter--lens-type [data-section="camera"] .filter__section__input__group .filter__section__input__btn {
+            max-width: 122px; }
+        .filter--lens-type [data-section="group"] .filter__section__input__group {
+          display: block;
+          -moz-column-count: 2;
+               column-count: 2;
+          max-width: 244px;
+          margin: 0 auto;
+          -moz-column-gap: 0;
+               column-gap: 0;
+          align-self: center; }
+        .filter--lens-type [data-section="group"] .filter__section__input__group__col {
+          -moz-column-break-inside: avoid;
+               break-inside: avoid;
+          page-break-inside: avoid; } }
   @media all and (max-width: 1023px) {
     .filter {
       flex-wrap: wrap;
@@ -285,10 +310,6 @@ body {
         opacity: 1;
         display: flex; }
     @media all and (max-width: 767px) {
-      .filter__section[data-section="price"] {
-        opacity: 1;
-        display: flex;
-        position: relative; }
       .filter__section[data-section="camera"] .filter__section__input__group {
         border-bottom: 1px solid #c3c5c4;
         padding-bottom: 20px; }

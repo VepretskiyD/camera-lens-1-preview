@@ -251,6 +251,11 @@ function Filter(bus, filtersEl, filtersClearBtnEl, filtersBackBtnEl, filtersAsid
     Array.prototype.forEach.call(nextTabs, function(tab) {
       tab.classList.add('filter__section--tab--active');
     });
+    if (type === 'lens-type') {
+      filtersEl.querySelector('.filter').classList.add('filter--lens-type');
+    } else {
+      filtersEl.querySelector('.filter').classList.remove('filter--lens-type');
+    }
     resetFilters();
   }
 
