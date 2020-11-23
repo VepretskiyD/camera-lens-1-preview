@@ -153,21 +153,11 @@ function Filter(bus, filtersEl, filtersClearBtnEl, filtersBackBtnEl, filtersAsid
             '</div>'
     };
     var tabHTML = '';
-    var itemsHTML = '';
-    var currentCol = 0;
-    productsGroups.forEach(function (group, index, groups) {
-      itemsHTML += templates.item
+    productsGroups.forEach(function (group) {
+      tabHTML += templates.item
         .replace(/:ID/g, 'group-' + group)
         .replace(/:GROUP/g, group)
         .replace(':SRC', 'https://picsum.photos/seed/picsum/300/200');
-      if (currentCol === 1 || index === groups.length - 1) {
-        tabHTML += templates.col
-          .replace(':ITEMS', itemsHTML);
-        itemsHTML = '';
-        currentCol = 0;
-      } else {
-        currentCol += 1;
-      }
     });
     tabEl.innerHTML = tabHTML;
   }

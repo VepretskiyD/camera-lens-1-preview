@@ -258,20 +258,7 @@ body {
           flex-direction: row;
           justify-content: center; }
           .filter--lens-type [data-section="camera"] .filter__section__input__group .filter__section__input__btn {
-            max-width: 122px; }
-        .filter--lens-type [data-section="group"] .filter__section__input__group {
-          display: block;
-          -moz-column-count: 2;
-               column-count: 2;
-          max-width: 244px;
-          margin: 0 auto;
-          -moz-column-gap: 0;
-               column-gap: 0;
-          align-self: center; }
-        .filter--lens-type [data-section="group"] .filter__section__input__group__col {
-          -moz-column-break-inside: avoid;
-               break-inside: avoid;
-          page-break-inside: avoid; } }
+            max-width: 122px; } }
   @media all and (max-width: 1023px) {
     .filter {
       flex-wrap: wrap;
@@ -357,7 +344,40 @@ body {
           .filter__section__input__group {
             align-items: center; } }
         .filter__section__input__group[data-filter-name="group"] {
-          flex-wrap: wrap; }
+          flex-wrap: wrap;
+          display: flex;
+          flex-direction: column;
+          height: 88px; }
+          @supports (display: grid) {
+            .filter__section__input__group[data-filter-name="group"] {
+              display: grid;
+              grid-auto-flow: column;
+              grid-template-rows: repeat(2, 1fr);
+              height: auto; } }
+          @media all and (max-width: 1279px) {
+            .filter__section__input__group[data-filter-name="group"] {
+              height: 108px; }
+              @supports (display: grid) {
+                .filter__section__input__group[data-filter-name="group"] {
+                  height: auto;
+                  grid-template-rows: repeat(3, 1fr); } } }
+          @media all and (max-width: 767px) {
+            .filter__section__input__group[data-filter-name="group"] {
+              margin: 0 auto;
+              align-self: center;
+              height: 180px;
+              width: 244px; }
+              .filter__section__input__group[data-filter-name="group"] .filter__section__input__btn {
+                flex-grow: 0;
+                flex-shrink: 0;
+                height: 36px; }
+              @supports (display: grid) {
+                .filter__section__input__group[data-filter-name="group"] {
+                  height: auto;
+                  width: auto;
+                  grid-template-rows: repeat(5, 1fr); }
+                  .filter__section__input__group[data-filter-name="group"] .filter__section__input__btn {
+                    height: auto; } } }
           .filter__section__input__group[data-filter-name="group"] .filter__section__input__label {
             padding: 5px;
             justify-content: space-between;
